@@ -57,41 +57,41 @@ public class FirstFragment extends Fragment {
     {
         NavHostFragment.findNavController(FirstFragment.this)
                 .navigate(R.id.action_FirstFragment_to_SecondFragment);
+        /*
+        this.closeKeyboardOnGenerateKeys();
 
-//        this.closeKeyboardOnGenerateKeys();
-//
-//        final String filesDirectory = activity.getFilesDir().toString();
-//        final String publicKeyPath = filesDirectory + "/public.pem";
-//        final String privateKeyPath = filesDirectory + "/private.pem";
-//        final String passphrase = binding.passwordEditText.getText().toString();
-//
-//        this.disableInputsOnGenerateKeys();
-//
-//        ExecutorService executor = Executors.newSingleThreadExecutor();
-//        Handler handler = new Handler(Looper.getMainLooper());
-//
-//        executor.execute(() -> {
-//            // Todo: apply encryption over private key;
-//            final int status = generatePrivateKey(publicKeyPath, privateKeyPath, keySize,
-//                    false, passphrase);
-//
-//            handler.post(() -> {
-//
-//                this.enableInputsOnGenerateKeysDone();
-//
-//                if(status == 0)
-//                {
-//                    InitialSetupActivity.resultData.putExtra("publicKey", publicKeyPath);
-//                    InitialSetupActivity.resultData.putExtra("privateKey", privateKeyPath);
-//
-//                    NavHostFragment.findNavController(FirstFragment.this)
-//                            .navigate(R.id.action_FirstFragment_to_SecondFragment);
-//                } else {
-//                    Toast.makeText(activity, "Something went wrong",
-//                            Toast.LENGTH_SHORT).show();
-//                }
-//            });
-//        });
+        final String filesDirectory = activity.getFilesDir().toString();
+        final String publicKeyPath = filesDirectory + "/public.pem";
+        final String privateKeyPath = filesDirectory + "/private.pem";
+        final String passphrase = binding.passwordEditText.getText().toString();
+
+        this.disableInputsOnGenerateKeys();
+
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Handler handler = new Handler(Looper.getMainLooper());
+
+        executor.execute(() -> {
+            // Todo: apply encryption over private key;
+            final int status = generatePrivateKey(publicKeyPath, privateKeyPath, keySize,
+                    false, passphrase);
+
+            handler.post(() -> {
+
+                this.enableInputsOnGenerateKeysDone();
+
+                if(status == 0)
+                {
+                    InitialSetupActivity.resultData.putExtra("publicKey", publicKeyPath);
+                    InitialSetupActivity.resultData.putExtra("privateKey", privateKeyPath);
+
+                    NavHostFragment.findNavController(FirstFragment.this)
+                            .navigate(R.id.action_FirstFragment_to_SecondFragment);
+                } else {
+                    Toast.makeText(activity, "Something went wrong",
+                            Toast.LENGTH_SHORT).show();
+                }
+            });
+        });*/
     }
 
     @Override

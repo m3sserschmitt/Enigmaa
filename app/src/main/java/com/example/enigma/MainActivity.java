@@ -11,7 +11,17 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.example.enigma.database.AppDatabase;
+import com.example.enigma.database.Edge;
+import com.example.enigma.database.EdgeDao;
+import com.example.enigma.database.Node;
+import com.example.enigma.database.NodeDao;
+import com.example.enigma.database.NodeWithNeighbor;
 import com.example.enigma.databinding.ActivityMainBinding;
+
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -20,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
         System.loadLibrary("enigma");
     }
 
-    private void checkKeys()
+    private void initialSetup()
     {
         SharedPreferences sharedPreferences = this.getSharedPreferences("com.example.enigma",
                 MODE_PRIVATE);
@@ -88,7 +98,42 @@ public class MainActivity extends AppCompatActivity {
         com.example.enigma.databinding.ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        this.checkKeys();
+        this.initialSetup();
+
+//        ExecutorService executor = Executors.newSingleThreadExecutor();
+
+//        executor.execute(() -> {
+//            AppDatabase db = AppDatabase.getInstance(getApplicationContext());
+//
+//            NodeDao nodeDao = db.nodeDao();
+//            EdgeDao edgeDao = db.edgeDao();
+//
+//            Node node1 = new Node();
+//            Node node2 = new Node();
+//            Node node3 = new Node();
+//
+//            node1.setAddress("node-1");
+//            node2.setAddress("node-2");
+//            node3.setAddress("node-3");
+//
+//            nodeDao.insertAll(node1, node2, node3);
+//
+//            Edge edge1 = new Edge();
+//            Edge edge2 = new Edge();
+//
+//            edge1.setOrigin("node-1");
+//            edge1.setSecondNode("node-2");
+//            edge2.setOrigin("node-1");
+//            edge2.setSecondNode("node-3");
+//
+//            edgeDao.insertAll(edge1, edge2);
+//
+//            NodeWithNeighbor neighbors = nodeDao.getNeighbors("node-1");
+//
+//            Log.i("edge", neighbors.getEdges().get(0).getSecondNode());
+//            Log.i("edge", neighbors.getEdges().get(1).getSecondNode());
+//        });
+
     }
 
     public native int initializeClient(String publicKeyPath, String privateKeyPath, String hostname, String port, boolean useTls, String serverPublicKey);

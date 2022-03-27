@@ -15,6 +15,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 
+import com.example.enigma.database.AppDatabase;
 import com.example.enigma.databinding.FragmentSecondBinding;
 
 import java.io.InputStream;
@@ -112,7 +113,8 @@ public class SecondFragment extends Fragment {
             return false;
         }
 
-        NetworkGraphParser graphParser = new NetworkGraphParser();
+        AppDatabase databaseInstance = AppDatabase.getInstance(activity);
+        NetworkGraphParser graphParser = new NetworkGraphParser(databaseInstance);
 
         return graphParser.parse(jsonContent);
     }
