@@ -18,4 +18,7 @@ public interface EdgeDao {
 
     @Delete
     void delete(Edge edge);
+
+    @Query("DELETE FROM edges")
+    void clear();
 }

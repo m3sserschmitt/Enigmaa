@@ -8,7 +8,9 @@
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.25" />
         <entry key="app/src/main/res/layout/content_initial_setup.xml" value="0.20697463768115942" />
         <entry key="app/src/main/res/layout/fragment_first.xml" value="0.18697916666666667" />
+        <entry key="app/src/main/res/layout/fragment_generate_key.xml" value="0.340625" />
         <entry key="app/src/main/res/layout/fragment_generate_keys_setup_first.xml" value="0.33" />
+        <entry key="app/src/main/res/layout/fragment_guard_setup.xml" value="0.30117753623188404" />
         <entry key="app/src/main/res/layout/fragment_second.xml" value="0.20697463768115942" />
       </map>
     </option>

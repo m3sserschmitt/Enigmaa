@@ -11,7 +11,7 @@ static Client *enigma4Client = nullptr;
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_com_example_enigma_FirstFragment_generatePrivateKey(
+Java_com_example_enigma_GenerateKeyFragment_generatePrivateKey(
         JNIEnv *env,jobject
         thiz,jstring publicKeyFile,
         jstring privateKeyFile,

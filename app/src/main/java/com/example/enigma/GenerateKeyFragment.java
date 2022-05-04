@@ -1,9 +1,11 @@
 package com.example.enigma;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,15 +17,14 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.navigation.fragment.NavHostFragment;
 
-import com.example.enigma.databinding.FragmentFirstBinding;
+import com.example.enigma.databinding.FragmentGenerateKeyBinding;
 
-import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class FirstFragment extends Fragment {
+public class GenerateKeyFragment extends Fragment {
 
-    private FragmentFirstBinding binding;
+    private FragmentGenerateKeyBinding binding;
     private FragmentActivity activity;
 
     private final int keySize = 4096;
@@ -55,12 +56,10 @@ public class FirstFragment extends Fragment {
 
     public void generateKeys()
     {
-        NavHostFragment.findNavController(FirstFragment.this)
-                .navigate(R.id.action_FirstFragment_to_SecondFragment);
-        /*
         this.closeKeyboardOnGenerateKeys();
 
         final String filesDirectory = activity.getFilesDir().toString();
+
         final String publicKeyPath = filesDirectory + "/public.pem";
         final String privateKeyPath = filesDirectory + "/private.pem";
         final String passphrase = binding.passwordEditText.getText().toString();
@@ -76,22 +75,26 @@ public class FirstFragment extends Fragment {
                     false, passphrase);
 
             handler.post(() -> {
-
                 this.enableInputsOnGenerateKeysDone();
 
                 if(status == 0)
                 {
-                    InitialSetupActivity.resultData.putExtra("publicKey", publicKeyPath);
-                    InitialSetupActivity.resultData.putExtra("privateKey", privateKeyPath);
+                    SharedPreferences.Editor editor = activity.getSharedPreferences(
+                            "com.example.enigma", Context.MODE_PRIVATE).edit();
 
-                    NavHostFragment.findNavController(FirstFragment.this)
+                    editor.putString("publicKey", publicKeyPath);
+                    editor.putString("privateKey", privateKeyPath);
+
+                    editor.apply();
+
+                    NavHostFragment.findNavController(GenerateKeyFragment.this)
                             .navigate(R.id.action_FirstFragment_to_SecondFragment);
                 } else {
-                    Toast.makeText(activity, "Something went wrong",
+                    Toast.makeText(activity, "Error while generating private key",
                             Toast.LENGTH_SHORT).show();
                 }
             });
-        });*/
+        });
     }
 
     @Override
@@ -99,9 +102,8 @@ public class FirstFragment extends Fragment {
             @NonNull LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState
     ) {
-
-        binding = FragmentFirstBinding.inflate(inflater, container, false);
-        activity = Objects.requireNonNull(getActivity());
+        activity = requireActivity();
+        binding = FragmentGenerateKeyBinding.inflate(inflater, container, false);
 
         return binding.getRoot();
     }
@@ -118,5 +120,6 @@ public class FirstFragment extends Fragment {
         binding = null;
     }
 
-    public native int generatePrivateKey(String publicKeyFile, String privateKeyFile, int bits, boolean encrypt, String passphrase);
+    public native int generatePrivateKey(String publicKeyFile, String privateKeyFile, int bits,
+                                         boolean encrypt, String passphrase);
 }

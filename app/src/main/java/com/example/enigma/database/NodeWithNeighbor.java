@@ -11,7 +11,7 @@ public class NodeWithNeighbor {
 
     @Relation(
             parentColumn = "address",
-            entityColumn = "origin"
+            entityColumn = "source"
     )
 
     protected List<Edge> edges;

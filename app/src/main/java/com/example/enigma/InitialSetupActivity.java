@@ -2,6 +2,7 @@ package com.example.enigma;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -16,7 +17,6 @@ import com.example.enigma.databinding.ActivityInitialSetupBinding;
 public class InitialSetupActivity extends AppCompatActivity {
 
     private AppBarConfiguration appBarConfiguration;
-    protected static Intent resultData = new Intent();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

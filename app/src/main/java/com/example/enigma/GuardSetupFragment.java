@@ -1,6 +1,8 @@
 package com.example.enigma;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -16,68 +18,54 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 
 import com.example.enigma.database.AppDatabase;
-import com.example.enigma.databinding.FragmentSecondBinding;
+import com.example.enigma.databinding.FragmentGuardSetupBinding;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class SecondFragment extends Fragment {
+public class GuardSetupFragment extends Fragment {
 
-    private FragmentSecondBinding binding;
+    private FragmentGuardSetupBinding binding;
     private FragmentActivity activity;
+    private SharedPreferences sharedPreferences;
 
-    private void setUserInputData()
+    private String guardHostname;
+
+    private boolean readGuardHostname()
     {
-        String hostname = binding.hostnameEditText.getText().toString();
+        guardHostname = binding.hostnameEditText.getText().toString();
 
-        if(hostname.equals(""))
+        if(guardHostname.equals(""))
         {
             Toast.makeText(activity, "Enter a valid hostname", Toast.LENGTH_SHORT).show();
 
-            return;
+            return false;
         }
 
-        InitialSetupActivity.resultData.putExtra("hostname", hostname);
+        sharedPreferences.edit().putString("guardHostname", guardHostname).apply();
+
+        return true;
     }
 
     private void terminateActivity()
     {
-        activity.setResult(Activity.RESULT_OK, InitialSetupActivity.resultData);
+        activity.setResult(Activity.RESULT_OK);
         activity.finish();
     }
 
-    /*
-    private boolean saveFile(String content, String saveFileName)
-    {
-        FileOutputStream outputStream;
-
-        try {
-            outputStream = activity.openFileOutput(saveFileName, Context.MODE_PRIVATE);
-            outputStream.write(content.getBytes());
-            outputStream.close();
-        } catch (Exception e)
-        {
-            return false;
-        }
-
-        return true;
-    }
-    */
-
     @Nullable
-    private String download(String host, int port, String path)
+    private String download(@NonNull String host)
     {
         URL url;
         HttpURLConnection urlConnection;
         StringBuilder result = new StringBuilder();
 
         try {
-            url = new URL("http", host, port, path);
+            url = new URL("http", host, 8080, "get_network_graph");
             urlConnection = (HttpURLConnection) url.openConnection();
             InputStream in = urlConnection.getInputStream();
             InputStreamReader reader = new InputStreamReader(in);
@@ -93,8 +81,6 @@ public class SecondFragment extends Fragment {
                 data = reader.read();
             }
         } catch (Exception e) {
-
-            Log.i("exception when downloading resource", e.toString());
             e.printStackTrace();
 
             return null;
@@ -103,34 +89,34 @@ public class SecondFragment extends Fragment {
         return result.toString();
     }
 
-    private boolean downloadAndParseGraph(String host, int port, String path
-            /*, String saveFileName*/)
+    private boolean parseNetworkGraph(@Nullable String networkGraph)
     {
-        String jsonContent = this.download(host, port, path);
+        AppDatabase databaseInstance = AppDatabase.getInstance(activity);
+        NetworkGraphParser graphParser = new NetworkGraphParser(databaseInstance);
 
-        if(jsonContent == null)
+        if(!graphParser.parse(networkGraph))
         {
             return false;
         }
 
-        AppDatabase databaseInstance = AppDatabase.getInstance(activity);
-        NetworkGraphParser graphParser = new NetworkGraphParser(databaseInstance);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
 
-        return graphParser.parse(jsonContent);
+        editor.putString("guardAddress", graphParser.getGuardAddress());
+        editor.putString("guardPublicKey", graphParser.getGuardPublicKey());
+
+        editor.apply();
+
+        return true;
     }
 
-    private void downloadRequiredData()
+    private void downloadNetworkState()
     {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Handler handler = new Handler(Looper.getMainLooper());
 
         executor.execute(() -> {
-
-            String host = InitialSetupActivity.resultData.getStringExtra("hostname");
-
-            final boolean success = downloadAndParseGraph(host, 8080,
-                    "get_network_graph"/*,
-                    "network_graph.json"*/);
+            final String networkGraph = download(guardHostname);
+            final boolean success = parseNetworkGraph(networkGraph);
 
             handler.post(() -> {
 
@@ -138,8 +124,16 @@ public class SecondFragment extends Fragment {
                 {
                     terminateActivity();
                 } else {
-                    Toast.makeText(activity, "Errors occurred while processing network graph",
-                            Toast.LENGTH_SHORT).show();
+                    String errorMessage;
+
+                    if(networkGraph == null)
+                    {
+                        errorMessage = "Errors occurred while downloading network state";
+                    } else {
+                        errorMessage = "Errors occurred while processing network graph";
+                    }
+
+                    Toast.makeText(activity, errorMessage, Toast.LENGTH_SHORT).show();
                 }
             });
         });
@@ -147,8 +141,12 @@ public class SecondFragment extends Fragment {
 
     private void setupRequiredDataAndExit()
     {
-        this.setUserInputData();
-        this.downloadRequiredData();
+        if(!readGuardHostname())
+        {
+            return;
+        }
+
+        downloadNetworkState();
     }
 
     @Override
@@ -156,9 +154,10 @@ public class SecondFragment extends Fragment {
             @NonNull LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState
     ) {
-        binding = FragmentSecondBinding.inflate(inflater, container, false);
-
-        activity = Objects.requireNonNull(getActivity());
+        binding = FragmentGuardSetupBinding.inflate(inflater, container, false);
+        activity = requireActivity();
+        sharedPreferences = activity.getSharedPreferences("com.example.enigma",
+                Context.MODE_PRIVATE);
 
         return binding.getRoot();
     }

@@ -3,31 +3,31 @@ package com.example.enigma.database;
 import androidx.annotation.NonNull;
 import androidx.room.Entity;
 
-@Entity(tableName = "edges", primaryKeys = {"origin", "secondNode"})
+@Entity(tableName = "edges", primaryKeys = {"source", "target"})
 public class Edge {
 
     @NonNull
-    private String origin = "";
+    private String source = "";
 
     @NonNull
-    private String secondNode = "";
+    private String target = "";
 
     @NonNull
-    public String getOrigin() {
-        return origin;
+    public String getSource() {
+        return source;
     }
 
     @NonNull
-    public String getSecondNode()
+    public String getTarget()
     {
-        return secondNode;
+        return target;
     }
 
-    public void setOrigin(@NonNull String origin) {
-        this.origin = origin;
+    public void setSource(@NonNull String source) {
+        this.source = source;
     }
 
-    public void setSecondNode(@NonNull String secondNode) {
-        this.secondNode = secondNode;
+    public void setTarget(@NonNull String target) {
+        this.target = target;
     }
 }

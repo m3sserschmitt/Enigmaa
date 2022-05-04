@@ -30,4 +30,7 @@ public interface NodeDao {
     @Transaction
     @Query("SELECT * FROM nodes WHERE address = :origin")
     NodeWithNeighbor getNeighbors(String origin);
+
+    @Query("DELETE FROM nodes")
+    void clear();
 }

@@ -25,7 +25,6 @@ import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
 
-    // Used to load the 'enigma' library on application startup.
     static {
         System.loadLibrary("enigma");
     }
@@ -34,52 +33,21 @@ public class MainActivity extends AppCompatActivity {
     {
         SharedPreferences sharedPreferences = this.getSharedPreferences("com.example.enigma",
                 MODE_PRIVATE);
-        String privateKeyFile = sharedPreferences.getString("privateKey", null);
 
-        if(privateKeyFile == null)
+        String privateKey = sharedPreferences.getString("privateKey", null);
+        String guardHostname = sharedPreferences.getString("guardHostname", null);
+
+        if(privateKey == null || guardHostname == null)
         {
             Intent initialSetupActivity = new Intent(this,
                     InitialSetupActivity.class);
 
-            ActivityResultLauncher<Intent> keyGeneratorActivity = registerForActivityResult(
+            ActivityResultLauncher<Intent> initialSetupActivityRegister = registerForActivityResult(
                     new ActivityResultContracts.StartActivityForResult(),
                     result -> {
                         if(result.getResultCode() == Activity.RESULT_OK){
-                            Intent data = result.getData();
-
-                            if(data == null)
-                            {
-                                Toast.makeText(getApplicationContext(),
-                                        "Something went wrong",
-                                        Toast.LENGTH_SHORT).show();
-
-                                return;
-                            }
-
-                            String publicKey = data.getStringExtra("publicKey");
-                            String privateKey = data.getStringExtra("privateKey");
-                            String hostname = data.getStringExtra("hostname");
-
-                            boolean success = publicKey != null && privateKey != null
-                                    && hostname != null;
-
-                            if(success)
-                            {
-                                Toast.makeText(getApplicationContext(), "Success",
-                                        Toast.LENGTH_SHORT).show();
-
-                                SharedPreferences.Editor editor = sharedPreferences.edit();
-
-                                editor.putString("publicKey", publicKey);
-                                editor.putString("privateKey", privateKey);
-                                editor.putString("hostname", hostname);
-
-                                editor.apply();
-
-                            }else {
-                                Toast.makeText(getApplicationContext(), "Failure",
-                                        Toast.LENGTH_SHORT).show();
-                            }
+                            Toast.makeText(getApplicationContext(), "Success",
+                                    Toast.LENGTH_SHORT).show();
                         } else {
                             Toast.makeText(getApplicationContext(), "Something went wrong",
                                     Toast.LENGTH_SHORT).show();
@@ -87,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
                     }
             );
 
-            keyGeneratorActivity.launch(initialSetupActivity);
+            initialSetupActivityRegister.launch(initialSetupActivity);
         }
     }
 
@@ -95,46 +63,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        com.example.enigma.databinding.ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
+        ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        this.initialSetup();
-
-//        ExecutorService executor = Executors.newSingleThreadExecutor();
-
-//        executor.execute(() -> {
-//            AppDatabase db = AppDatabase.getInstance(getApplicationContext());
-//
-//            NodeDao nodeDao = db.nodeDao();
-//            EdgeDao edgeDao = db.edgeDao();
-//
-//            Node node1 = new Node();
-//            Node node2 = new Node();
-//            Node node3 = new Node();
-//
-//            node1.setAddress("node-1");
-//            node2.setAddress("node-2");
-//            node3.setAddress("node-3");
-//
-//            nodeDao.insertAll(node1, node2, node3);
-//
-//            Edge edge1 = new Edge();
-//            Edge edge2 = new Edge();
-//
-//            edge1.setOrigin("node-1");
-//            edge1.setSecondNode("node-2");
-//            edge2.setOrigin("node-1");
-//            edge2.setSecondNode("node-3");
-//
-//            edgeDao.insertAll(edge1, edge2);
-//
-//            NodeWithNeighbor neighbors = nodeDao.getNeighbors("node-1");
-//
-//            Log.i("edge", neighbors.getEdges().get(0).getSecondNode());
-//            Log.i("edge", neighbors.getEdges().get(1).getSecondNode());
-//        });
-
+        initialSetup();
     }
 
-    public native int initializeClient(String publicKeyPath, String privateKeyPath, String hostname, String port, boolean useTls, String serverPublicKey);
+    public native int initializeClient(String publicKeyPath, String privateKeyPath, String hostname,
+                                       String port, boolean useTls, String serverPublicKey);
 }

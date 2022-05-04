@@ -2,6 +2,8 @@ package com.example.enigma;
 
 import android.content.Context;
 
+import androidx.annotation.Nullable;
+
 import com.example.enigma.database.AppDatabase;
 import com.example.enigma.database.Edge;
 import com.example.enigma.database.EdgeDao;
@@ -18,21 +20,26 @@ public class NetworkGraphParser {
 
     private final AppDatabase databaseInstance;
 
+    private String guardAddress;
+    private String guardPublicKey;
+
     public NetworkGraphParser(AppDatabase databaseInstance)
     {
         this.databaseInstance = databaseInstance;
     }
 
-    public boolean parse(String jsonData)
+    private boolean parseGraph(JSONObject jsonObject)
     {
         try{
-            JSONObject jsonObject = new JSONObject(jsonData);
             JSONObject graph = jsonObject.getJSONObject("graph");
 
             Iterator<String> addressesIterator = graph.keys();
 
             EdgeDao edgeDao = databaseInstance.edgeDao();
             NodeDao nodeDao = databaseInstance.nodeDao();
+
+            nodeDao.clear();
+            edgeDao.clear();
 
             while(addressesIterator.hasNext())
             {
@@ -53,8 +60,8 @@ public class NetworkGraphParser {
                 for(int i = 0; i < numberOfNeighbors; i ++)
                 {
                     Edge edge = new Edge();
-                    edge.setOrigin(address);
-                    edge.setSecondNode(adjacencyList.get(i).toString());
+                    edge.setSource(address);
+                    edge.setTarget(adjacencyList.get(i).toString());
 
                     edgeDao.insertAll(edge);
                 }
@@ -62,6 +69,44 @@ public class NetworkGraphParser {
 
         } catch (Exception e)
         {
+            e.printStackTrace();
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean parseGuardInfo(JSONObject jsonObject)
+    {
+        try {
+            guardAddress = jsonObject.getString("localAddress");
+            guardPublicKey = jsonObject.getString("publicKey");
+        } catch (Exception e)
+        {
+            e.printStackTrace();
+
+            return false;
+        }
+
+        return true;
+    }
+
+    public boolean parse(@Nullable String jsonData)
+    {
+        if(jsonData == null)
+        {
+            return false;
+        }
+
+        try {
+            JSONObject jsonObject = new JSONObject(jsonData);
+
+            if(!parseGraph(jsonObject)/* || !parseGuardInfo(jsonObject)*/)
+            {
+                return false;
+            }
+        } catch (Exception e) {
             e.printStackTrace();
 
             return false;
@@ -92,5 +137,15 @@ public class NetworkGraphParser {
         }
 
         return this.parse(data.toString());
+    }
+
+    public String getGuardAddress()
+    {
+        return guardAddress;
+    }
+
+    public String getGuardPublicKey()
+    {
+        return guardPublicKey;
     }
 }
