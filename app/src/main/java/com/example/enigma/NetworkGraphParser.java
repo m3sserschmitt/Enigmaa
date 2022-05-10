@@ -102,7 +102,7 @@ public class NetworkGraphParser {
         try {
             JSONObject jsonObject = new JSONObject(jsonData);
 
-            if(!parseGraph(jsonObject)/* || !parseGuardInfo(jsonObject)*/)
+            if(!parseGraph(jsonObject) || !parseGuardInfo(jsonObject))
             {
                 return false;
             }

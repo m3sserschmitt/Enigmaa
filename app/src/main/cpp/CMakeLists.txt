@@ -2,10 +2,12 @@
 # documentation: https://d.android.com/studio/projects/add-native-code.html
 
 add_library(crypto STATIC IMPORTED)
-set_target_properties(crypto PROPERTIES IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/openssl-1.1.1n/libcrypto.a")
+set_target_properties(crypto PROPERTIES
+        IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/openssl-1.1.1n/${ANDROID_ABI}/libcrypto.a")
 
 add_library(ssl STATIC IMPORTED)
-set_target_properties(ssl PROPERTIES IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/openssl-1.1.1n/libssl.a")
+set_target_properties(ssl PROPERTIES
+        IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/openssl-1.1.1n/${ANDROID_ABI}/libssl.a")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/openssl-1.1.1n/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/enigma4/libcryptography/include)

@@ -1,6 +1,6 @@
 #include <jni.h>
 #include <string>
-#include <string.h>
+#include <cstring>
 
 #include "./enigma4/libcryptography/include/cryptography/rsa.hh"
 #include "./enigma4/libenigma4-client/include/enigma4-client/enigma4_client.hh"
@@ -37,29 +37,53 @@ Java_com_example_enigma_GenerateKeyFragment_generatePrivateKey(
 }
 
 extern "C"
-JNIEXPORT jint JNICALL
-Java_com_example_enigma_MainActivity_initializeClient(
+JNIEXPORT jstring JNICALL
+Java_com_example_enigma_communications_MessagingService_initializeClient(
         JNIEnv *env,
         jobject thiz,
-        jstring publicKeyPath,
-        jstring privateKeyPath,
-        jstring port,
+        jstring publicKey,
+        jstring privateKey,
         jstring hostname,
+        jstring port,
         jboolean useTls,
-        jstring serverPublicKeyPath) {
+        jstring guardPublicKey) {
 
-    string publicKey = env->GetStringUTFChars(publicKeyPath, nullptr);
-    string privateKey = env->GetStringUTFChars(privateKeyPath, nullptr);
-    string serverPublicKey = env->GetStringUTFChars(serverPublicKeyPath, nullptr);
-    string host = env->GetStringUTFChars(hostname, nullptr);
-    string portNumber = env->GetStringUTFChars(port, nullptr);
+    const char *publicKeyPEM = env->GetStringUTFChars(publicKey, nullptr);
+    const char *privateKeyPEM = env->GetStringUTFChars(privateKey, nullptr);
+    const char *serverPublicKeyPEM = env->GetStringUTFChars(guardPublicKey, nullptr);
+    const char *host = env->GetStringUTFChars(hostname, nullptr);
+    const char *portNumber = env->GetStringUTFChars(port, nullptr);
+
+    delete enigma4Client;
 
     if(useTls)
     {
-        enigma4Client = new TlsClient(publicKey, privateKey);
-    } else {
-        enigma4Client = new Client(publicKey, privateKey);
+        enigma4Client = new TlsClient();
+    } else{
+        enigma4Client = new Client();
     }
 
-    return enigma4Client->createConnection(host, portNumber, serverPublicKey);
+    if(not enigma4Client)
+    {
+        return nullptr;
+    }
+
+    if(enigma4Client->setClientPublicKeyPEM(publicKeyPEM) < 0)
+    {
+        return nullptr;
+    }
+
+    if(enigma4Client->loadClientPrivateKeyPEM(privateKeyPEM) < 0)
+    {
+        return nullptr;
+    }
+
+    if (enigma4Client->createConnection(host, portNumber, serverPublicKeyPEM) < 0)
+    {
+        return nullptr;
+    }
+
+    string guardAddress = enigma4Client->getGuardAddress();
+
+    return env->NewStringUTF(guardAddress.c_str());
 }

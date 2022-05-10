@@ -6,7 +6,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -156,7 +155,7 @@ public class GuardSetupFragment extends Fragment {
     ) {
         binding = FragmentGuardSetupBinding.inflate(inflater, container, false);
         activity = requireActivity();
-        sharedPreferences = activity.getSharedPreferences("com.example.enigma",
+        sharedPreferences = activity.getSharedPreferences(getString(R.string.shared_preferences),
                 Context.MODE_PRIVATE);
 
         return binding.getRoot();

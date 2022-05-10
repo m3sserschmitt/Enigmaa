@@ -28,8 +28,8 @@ public interface NodeDao {
     List<NodeWithNeighbor> getNodesWithNeighbors();
 
     @Transaction
-    @Query("SELECT * FROM nodes WHERE address = :origin")
-    NodeWithNeighbor getNeighbors(String origin);
+    @Query("SELECT * FROM nodes WHERE address = :source")
+    NodeWithNeighbor getNeighbors(String source);
 
     @Query("DELETE FROM nodes")
     void clear();

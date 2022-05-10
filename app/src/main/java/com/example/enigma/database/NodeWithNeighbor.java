@@ -16,7 +16,8 @@ public class NodeWithNeighbor {
 
     protected List<Edge> edges;
 
-    public List<Edge> getEdges() {
+    public List<Edge> getEdges()
+    {
         return edges;
     }
 }

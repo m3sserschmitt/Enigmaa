@@ -17,4 +17,8 @@
     <string name="enter_server_hostname">enter_server_hostname</string>
     <string name="enter_hostname">Enter enigma server hostname</string>
     <string name="ok">Ok</string>
+    <string name="shared_preferences">com.example.enigma</string>
+    <string name="chats">Chats</string>
+    <string name="contacts">Contacts</string>
+    <string name="add_contact">Add Contact</string>
 </resources>

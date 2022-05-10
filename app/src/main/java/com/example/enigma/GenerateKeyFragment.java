@@ -80,7 +80,7 @@ public class GenerateKeyFragment extends Fragment {
                 if(status == 0)
                 {
                     SharedPreferences.Editor editor = activity.getSharedPreferences(
-                            "com.example.enigma", Context.MODE_PRIVATE).edit();
+                            getString(R.string.shared_preferences), Context.MODE_PRIVATE).edit();
 
                     editor.putString("publicKey", publicKeyPath);
                     editor.putString("privateKey", privateKeyPath);
