@@ -3,7 +3,10 @@
     package="com.example.enigma">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.hardware.camera" />
+    <uses-permission android:name="android.hardware.camera.autofocus" />
 
     <application
         android:allowBackup="true"
@@ -12,6 +15,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Enigma">
+
+        <activity
+            android:name=".ScanQrCodeActivity"
+            android:exported="false" />
 
         <receiver
             android:name=".communications.ServiceRestarter"
@@ -27,22 +34,19 @@
             android:exported="false"
             android:label="@string/title_activity_initial_setup"
             android:theme="@style/Theme.Enigma.NoActionBar" />
-
         <activity
             android:name=".MainActivity"
             android:exported="true">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
         <service
             android:name=".communications.MessagingService"
-            android:enabled="true">
-        </service>
-
+            android:enabled="true"/>
     </application>
 
 </manifest>

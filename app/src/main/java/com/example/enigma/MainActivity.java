@@ -2,42 +2,27 @@ package com.example.enigma;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
-import androidx.room.RoomDatabase;
 
 import android.app.Activity;
-import android.app.ActivityManager;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
-import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.example.enigma.circuit.CircuitBuilder;
-import com.example.enigma.communications.MessagingService;
 import com.example.enigma.communications.ServiceRestarter;
 import com.example.enigma.database.AppDatabase;
-import com.example.enigma.database.Edge;
-import com.example.enigma.database.EdgeDao;
 import com.example.enigma.database.Node;
-import com.example.enigma.database.NodeDao;
-import com.example.enigma.database.NodeWithNeighbor;
 import com.example.enigma.databinding.ActivityMainBinding;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -60,8 +45,7 @@ public class MainActivity extends AppCompatActivity {
 
         if(privateKey == null || guardHostname == null)
         {
-            Intent initialSetupActivity = new Intent(this,
-                    InitialSetupActivity.class);
+            Intent initialSetupActivity = new Intent(this, InitialSetupActivity.class);
 
             ActivityResultLauncher<Intent> initialSetupActivityRegister = registerForActivityResult(
                     new ActivityResultContracts.StartActivityForResult(),
@@ -121,25 +105,8 @@ public class MainActivity extends AppCompatActivity {
         sharedPreferences = getSharedPreferences(getString(R.string.shared_preferences),
                 MODE_PRIVATE);
 
-        initialSetup();
+         initialSetup();
 
-//        MessagingService messagingService = new MessagingService();
-//        Intent messagingServiceIntent = new Intent(this, messagingService.getClass());
-//
-//        if(!isMessagingServiceRunning(messagingService.getClass()))
-//        {
-//            startService(messagingServiceIntent);
-//        }
-    }
-
-    private boolean isMessagingServiceRunning(Class<?> serviceClass) {
-        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if (serviceClass.getName().equals(service.service.getClassName())) {
-                return true;
-            }
-        }
-        return false;
     }
 
     @Override

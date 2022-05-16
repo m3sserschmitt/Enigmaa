@@ -21,4 +21,11 @@
     <string name="chats">Chats</string>
     <string name="contacts">Contacts</string>
     <string name="add_contact">Add Contact</string>
+    <string name="connection">Connection</string>
+    <string name="scan_the_code_with_the_other_device">Scan the code with the other device</string>
+    <string name="qr_code">Qr Code</string>
+    <string name="scan">Scan</string>
+    <string name="back">Back</string>
+    <string name="hostname">hostname</string>
+    <string name="_10_0_2_2">10.0.2.2</string>
 </resources>

@@ -5,6 +5,7 @@ import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.Query;
 import androidx.room.Transaction;
+import androidx.room.Update;
 
 import java.util.List;
 
@@ -12,6 +13,12 @@ import java.util.List;
 public interface ContactDao {
     @Query("SELECT * FROM contacts")
     List<Contact> getAll();
+
+    @Query("SELECT * FROM contacts WHERE address=:address")
+    Contact findByAddress(String address);
+
+    @Update
+    void update(Contact contact);
 
     @Insert
     void insertAll(Contact... contacts);

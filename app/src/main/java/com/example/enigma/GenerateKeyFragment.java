@@ -5,7 +5,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,7 +26,7 @@ public class GenerateKeyFragment extends Fragment {
     private FragmentGenerateKeyBinding binding;
     private FragmentActivity activity;
 
-    private final int keySize = 4096;
+    private final int keySize = 2048;
 
     private void closeKeyboardOnGenerateKeys()
     {

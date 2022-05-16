@@ -6,40 +6,54 @@ import androidx.room.Entity;
 @Entity(tableName = "contacts", primaryKeys = {"address"})
 public class Contact {
 
-    @NonNull
-    private String address = "";
+    @NonNull private String address = "";
 
-    @NonNull
-    private String session = "";
+    @NonNull private String sessionId = "";
 
-    @NonNull
-    private String sessionKey = "";
+    @NonNull private String sessionKey = "";
 
-    @NonNull
-    public String getAddress()
+    @NonNull String guardAddress = "";
+
+    @NonNull String nickName = "";
+
+    @NonNull public String getAddress()
     {
         return address;
     }
 
-    @NonNull
-    public String getSession() {
-        return session;
+    @NonNull public String getSessionId() {
+        return sessionId;
     }
 
-    @NonNull
-    public String getSessionKey() {
+    @NonNull public String getSessionKey() {
         return sessionKey;
+    }
+
+    public void setGuardAddress(@NonNull String guardAddress) {
+        this.guardAddress = guardAddress;
+    }
+
+    @NonNull public String getGuardAddress() {
+        return guardAddress;
     }
 
     public void setAddress(@NonNull String address) {
         this.address = address;
     }
 
-    public void setSession(@NonNull String session) {
-        this.session = session;
+    public void setSessionId(@NonNull String session) {
+        this.sessionId = session;
     }
 
     public void setSessionKey(@NonNull String sessionKey) {
         this.sessionKey = sessionKey;
+    }
+
+    @NonNull public String getNickName() {
+        return nickName;
+    }
+
+    public void setNickName(@NonNull String nickName) {
+        this.nickName = nickName;
     }
 }

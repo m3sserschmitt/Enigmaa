@@ -37,22 +37,16 @@ Java_com_example_enigma_GenerateKeyFragment_generatePrivateKey(
 }
 
 extern "C"
-JNIEXPORT jstring JNICALL
+JNIEXPORT jboolean JNICALL
 Java_com_example_enigma_communications_MessagingService_initializeClient(
         JNIEnv *env,
         jobject thiz,
         jstring publicKey,
         jstring privateKey,
-        jstring hostname,
-        jstring port,
-        jboolean useTls,
-        jstring guardPublicKey) {
+        jboolean useTls) {
 
     const char *publicKeyPEM = env->GetStringUTFChars(publicKey, nullptr);
     const char *privateKeyPEM = env->GetStringUTFChars(privateKey, nullptr);
-    const char *serverPublicKeyPEM = env->GetStringUTFChars(guardPublicKey, nullptr);
-    const char *host = env->GetStringUTFChars(hostname, nullptr);
-    const char *portNumber = env->GetStringUTFChars(port, nullptr);
 
     delete enigma4Client;
 
@@ -65,20 +59,34 @@ Java_com_example_enigma_communications_MessagingService_initializeClient(
 
     if(not enigma4Client)
     {
-        return nullptr;
+        return false;
     }
 
     if(enigma4Client->setClientPublicKeyPEM(publicKeyPEM) < 0)
     {
-        return nullptr;
+        return false;
     }
 
     if(enigma4Client->loadClientPrivateKeyPEM(privateKeyPEM) < 0)
     {
-        return nullptr;
+        return false;
     }
 
-    if (enigma4Client->createConnection(host, portNumber, serverPublicKeyPEM) < 0)
+    return true;
+}
+
+extern "C"
+JNIEXPORT jstring JNICALL
+Java_com_example_enigma_communications_MessagingService_openConnection(JNIEnv *env, jobject thiz,
+                                                                       jstring hostname,
+                                                                       jstring port,
+                                                                       jstring guardPublicKeyPEM) {
+
+    const char *serverPublicKey = env->GetStringUTFChars(guardPublicKeyPEM, nullptr);
+    const char *host = env->GetStringUTFChars(hostname, nullptr);
+    const char *portNumber = env->GetStringUTFChars(port, nullptr);
+
+    if (enigma4Client->createConnection(host, portNumber, serverPublicKey) < 0)
     {
         return nullptr;
     }
@@ -86,4 +94,43 @@ Java_com_example_enigma_communications_MessagingService_initializeClient(
     string guardAddress = enigma4Client->getGuardAddress();
 
     return env->NewStringUTF(guardAddress.c_str());
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_enigma_communications_MessagingService_closeConnection(JNIEnv *env, jobject thiz) {
+    enigma4Client->closeConnection();
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_enigma_communications_MessagingService_closeClient(JNIEnv *env, jobject thiz) {
+    delete enigma4Client;
+    enigma4Client = nullptr;
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_example_enigma_communications_MessagingService_clientCreated(JNIEnv *env,
+                                                                            jobject thiz) {
+    return enigma4Client != nullptr;
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_example_enigma_communications_MessagingService_clientIsConnected(JNIEnv *env,
+                                                                          jobject thiz) {
+    return enigma4Client->isConnected();
+}
+
+extern "C"
+JNIEXPORT jstring JNICALL
+Java_com_example_enigma_ScanQrCodeActivity_getContactAddressFromPublicKey(JNIEnv *env, jobject thiz,
+                                                                          jstring publicKeyPEM) {
+    const char *publicKey = env->GetStringUTFChars(publicKeyPEM, nullptr);
+
+    string address;
+    KEY_UTIL::getKeyHexDigest(publicKey, address);
+
+    return env->NewStringUTF(address.c_str());
 }

@@ -4,7 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
-@Entity(tableName = "circuits", primaryKeys = {"id"})
+@Entity(tableName = "circuits")
 public class Circuit {
 
     @PrimaryKey(autoGenerate = true)

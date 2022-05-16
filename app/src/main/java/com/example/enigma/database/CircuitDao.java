@@ -11,7 +11,7 @@ import java.util.List;
 @Dao
 public interface CircuitDao {
 
-    @Query("SELECT * FROM contacts")
+    @Query("SELECT * FROM circuits")
     List<Circuit> getAll();
 
     @Insert

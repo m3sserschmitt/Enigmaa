@@ -9,29 +9,24 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
-import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
-import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 
+import com.example.enigma.FileUtils;
 import com.example.enigma.R;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class MessagingService extends Service {
 
-    private SharedPreferences sharedPreferences;
+    private final Context context;
+    private final FileUtils fileUtils;
 
     private String publicKey;
     private String privateKey;
@@ -39,12 +34,28 @@ public class MessagingService extends Service {
     private String guardAddress;
 
     private boolean clientInitialized;
+    private boolean clientConnected;
+
+    public MessagingService()
+    {
+        context = this;
+        fileUtils = FileUtils.getInstance(this);
+        clientInitialized = false;
+        clientConnected = false;
+    }
+
+    public MessagingService(Context context)
+    {
+        this.context = context;
+        fileUtils = FileUtils.getInstance(context);
+        clientConnected = false;
+        clientInitialized = false;
+    }
 
     @Override
     public void onCreate()
     {
         super.onCreate();
-        sharedPreferences = getSharedPreferences(getString(R.string.shared_preferences), MODE_PRIVATE);
 
         if(Build.VERSION.SDK_INT > Build.VERSION_CODES.O)
         {
@@ -80,37 +91,77 @@ public class MessagingService extends Service {
         startForeground(2, notification);
     }
 
+    public boolean initializeClient()
+    {
+        if(!clientInitialized) {
+
+            loadKeys();
+            clientInitialized = initializeClient(publicKey, privateKey, true);
+        }
+
+        return clientInitialized;
+    }
+
+    public void initializeClientAsync()
+    {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+
+        executor.execute(this::initializeClient);
+    }
+
+    public boolean connectClient()
+    {
+        if(clientInitialized && !clientConnected)
+        {
+            SharedPreferences sharedPreferences = context.getSharedPreferences(
+                    context.getString(R.string.shared_preferences), MODE_PRIVATE);
+            String guardHostname = sharedPreferences.getString("guardHostname", null);
+            String guardPublicKey = sharedPreferences.getString("guardPublicKey", null);
+
+            guardAddress = openConnection(guardHostname, "3000", guardPublicKey);
+
+            clientConnected = guardAddress != null;
+        }
+
+        return clientInitialized && clientConnected;
+    }
+
+    public void connectClientAsync()
+    {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+
+        executor.execute(this::connectClient);
+    }
+
+    public boolean initAndConnectClient()
+    {
+        return initializeClient() && connectClient();
+    }
+
+    public void initAndConnectClientAsync()
+    {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+
+        executor.execute(() -> {
+            initializeClient();
+            connectClient();
+        });
+    }
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId)
     {
         super.onStartCommand(intent, flags, startId);
 
-        if(!clientInitialized) {
-            String guardHostname = sharedPreferences.getString("guardHostname", null);
-            String guardPublicKey = sharedPreferences.getString("guardPublicKey", null);
-
-            loadKeys();
-            guardAddress = initializeClient(publicKey, privateKey, guardHostname, "3000",
-                    true, guardPublicKey);
-
-            clientInitialized = guardAddress != null;
-
-            if(clientInitialized)
-            {
-                Toast.makeText(this, "Messaging service started", Toast.LENGTH_SHORT).show();
-            }
-        }
+        initAndConnectClientAsync();
 
         return START_STICKY;
     }
-
-
 
     @Override
     public void onDestroy()
     {
         super.onDestroy();
-
         Intent broadcastIntent = new Intent();
         broadcastIntent.setAction("restartservice");
         broadcastIntent.setClass(this, ServiceRestarter.class);
@@ -123,42 +174,14 @@ public class MessagingService extends Service {
         return null;
     }
 
-    @Nullable
-    private String readFile(String file)
-    {
-        File filesDir = getFilesDir();
-        File filePath = new File(filesDir, file);
-
-        StringBuilder content = new StringBuilder();
-
-        try {
-            BufferedReader bufferedReader = new BufferedReader(new FileReader(filePath));
-            String line;
-
-            while((line = bufferedReader.readLine()) != null)
-            {
-                content.append(line);
-                content.append("\n");
-            }
-
-            bufferedReader.close();
-
-        } catch (Exception e)
-        {
-            e.printStackTrace();
-            return null;
-        }
-
-        return content.toString();
-    }
-
     private void loadKeys()
     {
-        publicKey = readFile("public.pem");
-        privateKey = readFile("private.pem");
+        publicKey = fileUtils.readFile("public.pem");
+        privateKey = fileUtils.readFile("private.pem");
 
         if(publicKey == null || privateKey == null)
         {
+//            Looper.prepare();
             Toast.makeText(this, "Error while loading Private Key", Toast.LENGTH_SHORT).show();
         }
     }
@@ -168,7 +191,44 @@ public class MessagingService extends Service {
         return guardAddress;
     }
 
-    public native String initializeClient(String publicKeyPEM, String privateKeyPEM, String hostname,
-                                          String port, boolean useTls, String guardPublicKeyPEM);
+    public void shutdownConnection()
+    {
+        closeConnection();
+        clientConnected = false;
+    }
 
+    public void shutdownClient()
+    {
+        closeClient();
+        clientInitialized = false;
+        clientConnected = false;
+    }
+
+    public boolean isClientConnected() {
+        return clientCreated() && clientIsConnected();
+    }
+
+    public boolean isClientInitialized() {
+        return clientCreated();
+    }
+
+    public String getPrivateKey() {
+        return privateKey;
+    }
+
+    public String getPublicKey() {
+        return publicKey;
+    }
+
+    private native boolean initializeClient(String publicKeyPEM, String privateKeyPEM, boolean useTls);
+
+    private native String openConnection(String hostname, String port, String guardPublicKeyPEM);
+
+    private native void closeConnection();
+
+    private native void closeClient();
+
+    private native boolean clientCreated();
+
+    private native boolean clientIsConnected();
 }

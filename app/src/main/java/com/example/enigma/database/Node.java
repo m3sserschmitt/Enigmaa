@@ -8,7 +8,8 @@ import androidx.room.PrimaryKey;
 import java.util.List;
 
 @Entity(tableName = "nodes")
-public class Node implements Comparable <Node>{
+public class Node implements Comparable <Node> {
+
     @PrimaryKey
     @NonNull
     private String address = "";
