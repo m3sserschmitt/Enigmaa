@@ -14,6 +14,9 @@ public interface CircuitDao {
     @Query("SELECT * FROM circuits")
     List<Circuit> getAll();
 
+    @Query("SELECT * FROM circuits WHERE destination=:destination ORDER BY 'index'")
+    List<Circuit> getRoute(String destination);
+
     @Insert
     void insertAll(Contact... contacts);
 

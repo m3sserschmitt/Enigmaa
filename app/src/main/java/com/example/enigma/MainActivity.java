@@ -22,6 +22,7 @@ import com.example.enigma.communications.ServiceRestarter;
 import com.example.enigma.database.AppDatabase;
 import com.example.enigma.database.Node;
 import com.example.enigma.databinding.ActivityMainBinding;
+import com.example.enigma.setup.InitialSetupActivity;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -62,28 +63,6 @@ public class MainActivity extends AppCompatActivity {
 
             initialSetupActivityRegister.launch(initialSetupActivity);
         }
-    }
-
-    private void buildCircuit()
-    {
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        Handler handler = new Handler(Looper.getMainLooper());
-
-        executor.execute(() -> {
-            AppDatabase databaseInstance = AppDatabase.getInstance(this);
-            CircuitBuilder circuitBuilder = CircuitBuilder.getInstance();
-            String guardAddress = sharedPreferences.getString("guardAddress", null);
-            circuitBuilder.importGraph(databaseInstance);
-            circuitBuilder.buildShortestCircuit(guardAddress);
-
-            handler.post(() -> {
-                List<Node> path = circuitBuilder.getShortestPath("3764ef6f2e05e69c57cd17c23b6dbd12228d2178e3000d677cbf6ef614a44e24");
-                for(Node n: path)
-                {
-                    Log.i("node:", n.getAddress());
-                }
-            });
-        });
     }
 
     @Override

@@ -1,4 +1,4 @@
-package com.example.enigma;
+package com.example.enigma.setup;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -16,6 +16,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.navigation.fragment.NavHostFragment;
 
+import com.example.enigma.R;
 import com.example.enigma.databinding.FragmentGenerateKeyBinding;
 
 import java.util.concurrent.ExecutorService;

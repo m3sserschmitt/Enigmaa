@@ -1,4 +1,4 @@
-package com.example.enigma;
+package com.example.enigma.setup;
 
 import android.os.Bundle;
 
@@ -7,6 +7,8 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
+
+import com.example.enigma.R;
 
 public class InitialSetupActivity extends AppCompatActivity {
 

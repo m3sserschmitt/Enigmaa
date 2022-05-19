@@ -4,19 +4,31 @@ import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
-@Entity(tableName = "messages", primaryKeys = {"id"})
+import java.util.Date;
+
+@Entity(tableName = "messages")
 public class Message {
 
     @PrimaryKey(autoGenerate = true)
     private long id;
 
     @NonNull
-    private String from = "";
+    private String sender = "";
 
     @NonNull
     private String destination = "";
 
     private String content;
+
+    private long timestamp;
+
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
+    }
 
     public void setContent(String content) {
         this.content = content;
@@ -26,8 +38,8 @@ public class Message {
         this.destination = destination;
     }
 
-    public void setFrom(@NonNull String from) {
-        this.from = from;
+    public void setSender(@NonNull String from) {
+        this.sender = from;
     }
 
     public long getId() {
@@ -44,8 +56,8 @@ public class Message {
     }
 
     @NonNull
-    public String getFrom() {
-        return from;
+    public String getSender() {
+        return sender;
     }
 
     public void setId(int id) {

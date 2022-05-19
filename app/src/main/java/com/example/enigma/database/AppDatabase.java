@@ -7,7 +7,7 @@ import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
-@Database(entities = {Node.class, Edge.class, Contact.class, Circuit.class}, version = 1)
+@Database(entities = {Node.class, Edge.class, Contact.class, Circuit.class, Message.class}, version = 1)
 public abstract class AppDatabase extends RoomDatabase {
 
     private static final String databaseName = "enigma.db";
@@ -37,4 +37,6 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract ContactDao contactDao();
 
     public abstract CircuitDao circuitDao();
+
+    public abstract MessageDao messageDao();
 }

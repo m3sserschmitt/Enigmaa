@@ -1,4 +1,4 @@
-package com.example.enigma;
+package com.example.enigma.setup;
 
 import android.app.Activity;
 import android.content.Context;
@@ -16,6 +16,8 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 
+import com.example.enigma.NetworkGraphParser;
+import com.example.enigma.R;
 import com.example.enigma.database.AppDatabase;
 import com.example.enigma.databinding.FragmentGuardSetupBinding;
 
@@ -64,6 +66,7 @@ public class GuardSetupFragment extends Fragment {
         StringBuilder result = new StringBuilder();
 
         try {
+            // ToDo: use https!!
             url = new URL("http", host, 8080, "get_network_graph");
             urlConnection = (HttpURLConnection) url.openConnection();
             InputStream in = urlConnection.getInputStream();

@@ -30,8 +30,12 @@ public class ChatsFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+    }
 
-        messagingService = new MessagingService(requireActivity());
+    @Override
+    public void onViewCreated(@NonNull View view, Bundle bundle)
+    {
+        messagingService = new MessagingService(requireContext());
     }
 
     @Override
@@ -43,7 +47,7 @@ public class ChatsFragment extends Fragment {
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater)
     {
-        inflater.inflate(R.menu.toolbar_menu, menu);
+        inflater.inflate(R.menu.chats_toolbar_menu, menu);
 
         MenuItem switchItem = menu.findItem(R.id.connection_switch);
         @SuppressLint("UseSwitchCompatOrMaterialCode")

@@ -12,6 +12,9 @@ public interface MessageDao {
     @Query("SELECT * FROM messages")
     List<Message> getAll();
 
+    @Query("SELECT * FROM messages WHERE sender=:address OR destination=:address")
+    List<Message> getConversation(String address);
+
     @Insert
     void insertAll(Message... messages);
 

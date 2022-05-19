@@ -10,8 +10,6 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.IBinder;
-import android.os.Looper;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
@@ -39,9 +37,9 @@ public class MessagingService extends Service {
     public MessagingService()
     {
         context = this;
-        fileUtils = FileUtils.getInstance(this);
-        clientInitialized = false;
+        fileUtils = FileUtils.getInstance(context);
         clientConnected = false;
+        clientInitialized = false;
     }
 
     public MessagingService(Context context)
@@ -178,12 +176,6 @@ public class MessagingService extends Service {
     {
         publicKey = fileUtils.readFile("public.pem");
         privateKey = fileUtils.readFile("private.pem");
-
-        if(publicKey == null || privateKey == null)
-        {
-//            Looper.prepare();
-            Toast.makeText(this, "Error while loading Private Key", Toast.LENGTH_SHORT).show();
-        }
     }
 
     public String getGuardAddress()

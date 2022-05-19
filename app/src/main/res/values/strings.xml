@@ -28,4 +28,8 @@
     <string name="back">Back</string>
     <string name="hostname">hostname</string>
     <string name="_10_0_2_2">10.0.2.2</string>
+    <string name="contact">contact</string>
+    <string name="address">address</string>
+    <string name="send">Send</string>
+    <string name="sender">Sender</string>
 </resources>

@@ -11,7 +11,7 @@ static Client *enigma4Client = nullptr;
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_com_example_enigma_GenerateKeyFragment_generatePrivateKey(
+Java_com_example_enigma_setup_GenerateKeyFragment_generatePrivateKey(
         JNIEnv *env,jobject
         thiz,jstring publicKeyFile,
         jstring privateKeyFile,
@@ -133,4 +133,17 @@ Java_com_example_enigma_ScanQrCodeActivity_getContactAddressFromPublicKey(JNIEnv
     KEY_UTIL::getKeyHexDigest(publicKey, address);
 
     return env->NewStringUTF(address.c_str());
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_example_enigma_ChatActivity_circuitExists(JNIEnv *env, jobject thiz, jstring destination) {
+    if(not enigma4Client)
+    {
+        return false;
+    }
+
+    const char *destinationNode = env->GetStringUTFChars(destination, nullptr);
+
+    return enigma4Client->circuitExists(destinationNode);
 }

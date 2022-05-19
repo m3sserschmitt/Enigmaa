@@ -1,41 +1,31 @@
 package com.example.enigma;
 
-import android.app.Activity;
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
-import androidx.navigation.ui.AppBarConfiguration;
-import androidx.navigation.ui.NavigationUI;
 
 import android.os.Handler;
 import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
-import com.example.enigma.NetworkGraphParser;
-import com.example.enigma.R;
 import com.example.enigma.database.AppDatabase;
-import com.example.enigma.databinding.ActivityInitialSetupBinding;
-import com.example.enigma.databinding.FragmentGuardSetupBinding;
+import com.example.enigma.database.Contact;
+import com.example.enigma.database.ContactDao;
+import com.example.enigma.databinding.FragmentContactsBinding;
 
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.concurrent.ExecutorService;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Executors;
 
 public class ContactsFragment extends Fragment {
+
+    private FragmentContactsBinding binding;
+    private AppDatabase databaseInstance;
+
+    private ContactAdapter contactAdapter;
 
     public ContactsFragment() {
     }
@@ -44,13 +34,48 @@ public class ContactsFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        databaseInstance = AppDatabase.getInstance(requireContext());
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_contacts, container, false);
+        binding = FragmentContactsBinding.inflate(inflater, container, false);
+
+        getContactsFromDatabase();
+
+        return binding.getRoot();
     }
 
+    private void populateRecyclerView(List<ContactItem> items)
+    {
+        if(contactAdapter == null)
+        {
+            contactAdapter = new ContactAdapter(requireContext(), items);
+        }
 
+        binding.contactsRecyclerView.setHasFixedSize(true);
+        binding.contactsRecyclerView.setAdapter(contactAdapter);
+    }
+
+    private void getContactsFromDatabase()
+    {
+        List<ContactItem> contactsList = new ArrayList<>();
+
+        Handler handler = new Handler(Looper.getMainLooper());
+
+        Executors.newSingleThreadExecutor().execute(() -> {
+            ContactDao contactDao = databaseInstance.contactDao();
+            final List<Contact> contacts = contactDao.getAll();
+
+            for(Contact contact : contacts)
+            {
+                contactsList.add(new ContactItem(contact.getAddress(), contact.getNickName()));
+            }
+
+            handler.post(() -> {
+                populateRecyclerView(contactsList);
+            });
+        });
+    }
 }

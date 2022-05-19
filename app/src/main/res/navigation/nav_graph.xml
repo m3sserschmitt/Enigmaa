@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/FirstFragment"
-        android:name="com.example.enigma.GenerateKeyFragment"
+        android:name="com.example.enigma.setup.GenerateKeyFragment"
         android:label="@string/first_fragment_label"
         tools:layout="@layout/fragment_generate_key">
 
@@ -17,7 +17,7 @@
     </fragment>
     <fragment
         android:id="@+id/SecondFragment"
-        android:name="com.example.enigma.GuardSetupFragment"
+        android:name="com.example.enigma.setup.GuardSetupFragment"
         android:label="@string/second_fragment_label"
         tools:layout="@layout/fragment_guard_setup">
 
