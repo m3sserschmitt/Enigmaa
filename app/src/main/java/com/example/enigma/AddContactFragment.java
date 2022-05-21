@@ -66,7 +66,7 @@ public class AddContactFragment extends Fragment {
         byte[] rawSessionKey = new byte[size];
         generator.nextBytes(rawSessionKey);
 
-        return new String(Base64.encode(rawSessionKey, Base64.DEFAULT));
+        return new String(Base64.encode(rawSessionKey, Base64.NO_CLOSE));
     }
 
     @Nullable
@@ -82,10 +82,10 @@ public class AddContactFragment extends Fragment {
         JSONObject data = new JSONObject();
 
         try {
-            data.put("publicKey", publicKey);
+            data.put("address", getLocalAddressFromPublicKey(publicKey));
+            data.put("guardAddress", guardAddress);
             data.put("sessionId", sessionId);
             data.put("sessionKey", sessionKey);
-            data.put("guardAddress", guardAddress);
         } catch (Exception e)
         {
             e.printStackTrace();
@@ -124,4 +124,6 @@ public class AddContactFragment extends Fragment {
     {
         generateQrCodeFromExportedData();
     }
+
+    private native String getLocalAddressFromPublicKey(String publicKey);
 }

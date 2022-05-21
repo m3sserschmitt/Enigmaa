@@ -7,8 +7,13 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -18,13 +23,14 @@ import android.view.ViewGroup;
 import android.widget.Switch;
 
 import com.example.enigma.communications.MessagingService;
+import com.example.enigma.communications.MessagingServiceWorker;
+
+import java.util.concurrent.TimeUnit;
 
 public class ChatsFragment extends Fragment {
+    private final String TAG = "MainActivity";
 
-    private MessagingService messagingService;
-
-    public ChatsFragment() {
-    }
+    public ChatsFragment() { }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -33,15 +39,16 @@ public class ChatsFragment extends Fragment {
     }
 
     @Override
-    public void onViewCreated(@NonNull View view, Bundle bundle)
-    {
-        messagingService = new MessagingService(requireContext());
-    }
-
-    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_chats, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, Bundle savedInstance)
+    {
+//        startMessagingServiceViaWorker();
+//        startMessagingService();
     }
 
     @Override
@@ -56,30 +63,46 @@ public class ChatsFragment extends Fragment {
         connectionSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if(isChecked)
             {
-                if(!isMessagingServiceRunning(messagingService.getClass()))
-                {
-                    Intent messagingServiceIntent = new Intent(requireActivity(), messagingService.getClass());
-                    requireActivity().startService(messagingServiceIntent);
-                } else if(!messagingService.isClientConnected()){
-                    messagingService.initAndConnectClientAsync();
-                }
+                startMessagingServiceViaWorker();
+                startMessagingService();
             } else {
-                messagingService.shutdownClient();
+                stopMessagingService();
             }
         });
-
-        connectionSwitch.setChecked(messagingService.isClientConnected());
     }
 
-    private boolean isMessagingServiceRunning(Class<?> serviceClass) {
-        ActivityManager manager = (ActivityManager) requireActivity().getSystemService(Context.ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if (serviceClass.getName().equals(service.service.getClassName())) {
-                return true;
-            }
+    public void startMessagingService()
+    {
+        Log.d(TAG, "startService called");
+        if(!MessagingService.isServiceRunning)
+        {
+            Intent messagingServiceIntent = new Intent(requireActivity(), MessagingService.class);
+            ContextCompat.startForegroundService(requireActivity(), messagingServiceIntent);
         }
-        return false;
     }
 
+    private void startMessagingServiceViaWorker() {
 
+        String UNIQUE_WORK_NAME = "StartMyServiceViaWorker";
+        WorkManager workManager = WorkManager.getInstance(requireActivity());
+
+        PeriodicWorkRequest request =
+                new PeriodicWorkRequest.Builder(
+                        MessagingServiceWorker.class,
+                        16,
+                        TimeUnit.MINUTES)
+                        .build();
+
+        workManager.enqueueUniquePeriodicWork(UNIQUE_WORK_NAME, ExistingPeriodicWorkPolicy.KEEP, request);
+    }
+
+    public void stopMessagingService()
+    {
+        Log.d(TAG, "stopService called");
+        if(MessagingService.isServiceRunning)
+        {
+            Intent messagingServiceIntent = new Intent(requireActivity(), MessagingService.class);
+            requireActivity().stopService(messagingServiceIntent);
+        }
+    }
 }

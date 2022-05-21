@@ -3,6 +3,8 @@ package com.example.enigma.circuit;
 import androidx.annotation.NonNull;
 
 import com.example.enigma.database.AppDatabase;
+import com.example.enigma.database.Circuit;
+import com.example.enigma.database.CircuitDao;
 import com.example.enigma.database.Edge;
 import com.example.enigma.database.Node;
 import com.example.enigma.database.NodeDao;
@@ -92,15 +94,26 @@ public class CircuitBuilder {
         }
     }
 
-    public List<Node> getShortestPath(String destinationAddress)
+    public List<Circuit> getShortestPath(String destinationAddress, AppDatabase databaseInstance)
     {
-        List<Node> path = new ArrayList<>();
+        List<Circuit> path = new ArrayList<>();
         Node currentNode = graph.get(destinationAddress);
 
+        CircuitDao circuitDao = databaseInstance.circuitDao();
+
+        int i = 0;
         while(currentNode != null)
         {
-            path.add(currentNode);
+            Circuit circuit = new Circuit();
+            circuit.setAddress(currentNode.getAddress());
+            circuit.setDestination(destinationAddress);
+            circuit.setIndex(i);
+
+            circuitDao.insertAll(circuit);
+
+            path.add(circuit);
             currentNode = currentNode.getPredecessor();
+            i--;
         }
 
         Collections.reverse(path);

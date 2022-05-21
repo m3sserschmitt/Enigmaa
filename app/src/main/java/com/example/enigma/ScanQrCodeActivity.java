@@ -108,11 +108,10 @@ public class ScanQrCodeActivity extends AppCompatActivity implements
         try {
             JSONObject jsonObject = new JSONObject(scannedData);
 
-            String publicKey = jsonObject.getString("publicKey");
-            String address = getContactAddressFromPublicKey(publicKey);
+            String address = jsonObject.getString("address");
+            String guardAddress = jsonObject.getString("guardAddress");
             String sessionId = jsonObject.getString("sessionId");
             String sessionKey = jsonObject.getString("sessionKey");
-            String guardAddress = jsonObject.getString("guardAddress");
 
             Handler handler = new Handler(Looper.getMainLooper());
 
@@ -131,7 +130,6 @@ public class ScanQrCodeActivity extends AppCompatActivity implements
                 contact.setGuardAddress(guardAddress);
                 contact.setNickName(name);
 
-                node.setPublicKey(publicKey);
                 node.setAddress(address);
 
                 final Contact contactControl = contactDao.findByAddress(address);
@@ -195,6 +193,4 @@ public class ScanQrCodeActivity extends AppCompatActivity implements
         }
         return super.onOptionsItemSelected(item);
     }
-
-    private native String getContactAddressFromPublicKey(String publicKeyPem);
 }

@@ -1,5 +1,6 @@
 package com.example.enigma;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -7,21 +8,23 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
+import android.util.Base64;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.example.enigma.circuit.CircuitBuilder;
 import com.example.enigma.database.AppDatabase;
 import com.example.enigma.database.Circuit;
 import com.example.enigma.database.CircuitDao;
+import com.example.enigma.database.Contact;
+import com.example.enigma.database.ContactDao;
 import com.example.enigma.database.Message;
 import com.example.enigma.database.MessageDao;
-import com.example.enigma.database.Node;
+import com.example.enigma.database.NodeDao;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class ChatActivity extends AppCompatActivity {
@@ -54,38 +57,82 @@ public class ChatActivity extends AppCompatActivity {
         messageInputEditText = findViewById(R.id.message_edit_text);
 
         getMessagesFromDatabase();
-        buildCircuit(foreignAddress);
+        getCircuit(foreignAddress);
     }
 
-    private void buildCircuit(String destination)
+    private byte[] decodeSequence(String sequence)
     {
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        Handler handler = new Handler(Looper.getMainLooper());
+        return Base64.decode(sequence, Base64.DEFAULT);
+    }
 
-        executor.execute(() -> {
-            AppDatabase databaseInstance = AppDatabase.getInstance(this);
+    private boolean loadClientCircuit(@NonNull List<Circuit> path, @NonNull AppDatabase databaseInstance)
+    {
+        NodeDao nodeDao = databaseInstance.nodeDao();
+        ContactDao contactDao = databaseInstance.contactDao();
 
-            CircuitDao circuitDao = databaseInstance.circuitDao();
-            List<Circuit> route = circuitDao.getRoute(destination);
+        String previousAddress;
+        boolean ok = true;
 
-            if(route.size() == 0)
+        for(int i = 0; i < path.size() && ok; i++)
+        {
+            Circuit item = path.get(i);
+
+            if(i == 0)
             {
-                CircuitBuilder circuitBuilder = CircuitBuilder.getInstance();
-                String guardAddress = getSharedPreferences(getString(R.string.shared_preferences),
-                        MODE_PRIVATE).getString("guardAddress", null);
-                circuitBuilder.importGraph(databaseInstance);
-                circuitBuilder.buildShortestCircuit(guardAddress);
-
-                List<Node> path = circuitBuilder.getShortestPath(destination);
-                for(Node n: path)
-                {
-                    Log.i("node:", n.getAddress());
-                }
+                previousAddress = getClientGuardAddress();
+            } else {
+                previousAddress = path.get(i - 1).getAddress();
             }
 
-            handler.post(() -> {
+            if(i == path.size() - 1)
+            {
+                Contact contact = contactDao.findByAddress(foreignAddress);
 
-            });
+                byte[] sessionId = decodeSequence(contact.getSessionId());
+                byte[] sessionKey = decodeSequence(contact.getSessionKey());
+
+                ok = loadLastNodeInCircuit(foreignAddress, previousAddress, sessionId, sessionKey) >= 0;
+            } else {
+                ok = loadNode(previousAddress, nodeDao.getPublicKey(item.getAddress()), true) != null;
+            }
+        }
+
+        return ok;
+    }
+
+    private void getCircuit(String destination)
+    {
+        Handler handler = new Handler(Looper.getMainLooper());
+
+        Executors.newSingleThreadExecutor().execute(() -> {
+            if(!circuitLoaded(foreignAddress))
+            {
+                AppDatabase databaseInstance = AppDatabase.getInstance(this);
+
+                CircuitDao circuitDao = databaseInstance.circuitDao();
+                List<Circuit> route = circuitDao.getRoute(destination);
+
+                if(route.size() == 0)
+                {
+                    CircuitBuilder circuitBuilder = CircuitBuilder.getInstance();
+                    String guardAddress = getSharedPreferences(getString(R.string.shared_preferences),
+                            MODE_PRIVATE).getString("guardAddress", null);
+                    circuitBuilder.importGraph(databaseInstance);
+                    circuitBuilder.buildShortestCircuit(guardAddress);
+
+                    route = circuitBuilder.getShortestPath(destination, databaseInstance);
+                }
+
+                final boolean success = loadClientCircuit(route, databaseInstance);
+                handler.post(() -> {
+                   if(!success)
+                   {
+                       Toast.makeText(this,
+                               "Error while loading circuit to specified address",
+                               Toast.LENGTH_SHORT).show();
+                   }
+                });
+            }
         });
     }
 
@@ -126,11 +173,15 @@ public class ChatActivity extends AppCompatActivity {
                 }
             }
 
-            handler.post(() -> {
-                populateRecyclerView(messagesList);
-            });
+            handler.post(() -> populateRecyclerView(messagesList));
         });
     }
 
-    private native boolean circuitExists(String destination);
+    private native boolean circuitLoaded(String destination);
+
+    private native String loadNode(String lastAddress, String publicKey, boolean generateSessionId);
+
+    private native int loadLastNodeInCircuit(String address, String lastAddress, byte[] sessionId, byte[] sessionKey);
+
+    private native String getClientGuardAddress();
 }

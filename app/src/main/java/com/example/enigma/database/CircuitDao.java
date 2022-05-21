@@ -18,10 +18,10 @@ public interface CircuitDao {
     List<Circuit> getRoute(String destination);
 
     @Insert
-    void insertAll(Contact... contacts);
+    void insertAll(Circuit... circuits);
 
     @Delete
-    void delete(Contact contact);
+    void delete(Circuit circuit);
 
     @Query("DELETE FROM circuits")
     void clear();

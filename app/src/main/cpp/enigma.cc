@@ -38,17 +38,17 @@ Java_com_example_enigma_setup_GenerateKeyFragment_generatePrivateKey(
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_example_enigma_communications_MessagingService_initializeClient(
+Java_com_example_enigma_communications_MessagingService_nativeInitializeClient(
         JNIEnv *env,
         jobject thiz,
         jstring publicKey,
         jstring privateKey,
         jboolean useTls) {
 
+    delete enigma4Client;
+
     const char *publicKeyPEM = env->GetStringUTFChars(publicKey, nullptr);
     const char *privateKeyPEM = env->GetStringUTFChars(privateKey, nullptr);
-
-    delete enigma4Client;
 
     if(useTls)
     {
@@ -77,10 +77,17 @@ Java_com_example_enigma_communications_MessagingService_initializeClient(
 
 extern "C"
 JNIEXPORT jstring JNICALL
-Java_com_example_enigma_communications_MessagingService_openConnection(JNIEnv *env, jobject thiz,
-                                                                       jstring hostname,
-                                                                       jstring port,
-                                                                       jstring guardPublicKeyPEM) {
+Java_com_example_enigma_communications_MessagingService_nativeOpenConnection(
+        JNIEnv *env,
+        jobject thiz,
+        jstring hostname,
+        jstring port,
+        jstring guardPublicKeyPEM) {
+
+    if(not enigma4Client)
+    {
+        return nullptr;
+    }
 
     const char *serverPublicKey = env->GetStringUTFChars(guardPublicKeyPEM, nullptr);
     const char *host = env->GetStringUTFChars(hostname, nullptr);
@@ -97,47 +104,41 @@ Java_com_example_enigma_communications_MessagingService_openConnection(JNIEnv *e
 }
 
 extern "C"
-JNIEXPORT void JNICALL
-Java_com_example_enigma_communications_MessagingService_closeConnection(JNIEnv *env, jobject thiz) {
-    enigma4Client->closeConnection();
-}
-
-extern "C"
-JNIEXPORT void JNICALL
-Java_com_example_enigma_communications_MessagingService_closeClient(JNIEnv *env, jobject thiz) {
-    delete enigma4Client;
-    enigma4Client = nullptr;
-}
-
-extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_example_enigma_communications_MessagingService_clientCreated(JNIEnv *env,
-                                                                            jobject thiz) {
-    return enigma4Client != nullptr;
-}
+Java_com_example_enigma_communications_MessagingService_nativeClientConnected(
+        JNIEnv *env,
+        jobject thiz) {
 
-extern "C"
-JNIEXPORT jboolean JNICALL
-Java_com_example_enigma_communications_MessagingService_clientIsConnected(JNIEnv *env,
-                                                                          jobject thiz) {
+    if(not enigma4Client)
+    {
+        return false;
+    }
+
     return enigma4Client->isConnected();
 }
 
-extern "C"
-JNIEXPORT jstring JNICALL
-Java_com_example_enigma_ScanQrCodeActivity_getContactAddressFromPublicKey(JNIEnv *env, jobject thiz,
-                                                                          jstring publicKeyPEM) {
-    const char *publicKey = env->GetStringUTFChars(publicKeyPEM, nullptr);
-
-    string address;
-    KEY_UTIL::getKeyHexDigest(publicKey, address);
-
-    return env->NewStringUTF(address.c_str());
-}
+//extern "C"
+//JNIEXPORT jstring JNICALL
+//Java_com_example_enigma_ScanQrCodeActivity_getContactAddressFromPublicKey(
+//        JNIEnv *env,
+//        jobject thiz,
+//        jstring publicKeyPEM) {
+//
+//    const char *publicKey = env->GetStringUTFChars(publicKeyPEM, nullptr);
+//
+//    string address;
+//    KEY_UTIL::getKeyHexDigest(publicKey, address);
+//
+//    return env->NewStringUTF(address.c_str());
+//}
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_example_enigma_ChatActivity_circuitExists(JNIEnv *env, jobject thiz, jstring destination) {
+Java_com_example_enigma_ChatActivity_circuitLoaded(
+        JNIEnv *env,
+        jobject thiz,
+        jstring destination) {
+
     if(not enigma4Client)
     {
         return false;
@@ -146,4 +147,80 @@ Java_com_example_enigma_ChatActivity_circuitExists(JNIEnv *env, jobject thiz, js
     const char *destinationNode = env->GetStringUTFChars(destination, nullptr);
 
     return enigma4Client->circuitExists(destinationNode);
+}
+
+extern "C"
+JNIEXPORT jstring JNICALL
+Java_com_example_enigma_ChatActivity_loadNode(
+        JNIEnv *env,
+        jobject thiz,
+        jstring lastAddress,
+        jstring publicKey,
+        jboolean generateSessionId) {
+
+    if(not enigma4Client)
+    {
+        return nullptr;
+    }
+
+    const char *lastNodeAddress = env->GetStringUTFChars(lastAddress, nullptr);
+    const char *publicKeyPEM= env->GetStringUTFChars(publicKey, nullptr);
+
+    string newAddress = enigma4Client->addNode(publicKeyPEM, lastNodeAddress, generateSessionId);
+
+    return env->NewStringUTF(newAddress.c_str());
+}
+
+static unsigned char* as_unsigned_char_array(JNIEnv *env, jbyteArray array) {
+    int len = env->GetArrayLength (array);
+    auto* buf = new unsigned char[len];
+    env->GetByteArrayRegion (array, 0, len, reinterpret_cast<jbyte*>(buf));
+    return buf;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_com_example_enigma_ChatActivity_loadLastNodeInCircuit(
+        JNIEnv *env,
+        jobject thiz,
+        jstring address,
+        jstring lastAddress,
+        jbyteArray sessionId,
+        jbyteArray sessionKey) {
+
+    if(not enigma4Client)
+    {
+        return -1;
+    }
+
+    const char *destinationAddress = env->GetStringUTFChars(address, nullptr);
+    const char *lastNodeAddress = env->GetStringUTFChars(lastAddress, nullptr);
+    const unsigned char *id = as_unsigned_char_array(env, sessionId);
+    const unsigned char *key = as_unsigned_char_array(env, sessionKey);
+
+    return enigma4Client->addNode(destinationAddress, lastNodeAddress, id, key);
+}
+
+extern "C"
+JNIEXPORT jstring JNICALL
+Java_com_example_enigma_AddContactFragment_getLocalAddressFromPublicKey(
+        JNIEnv *env, jobject thiz,
+        jstring publicKeyPEM) {
+
+    const char *publicKey = env->GetStringUTFChars(publicKeyPEM, nullptr);
+
+    string address;
+    KEY_UTIL::getKeyHexDigest(publicKey, address);
+
+    return env->NewStringUTF(address.c_str());
+}
+extern "C"
+JNIEXPORT jstring JNICALL
+Java_com_example_enigma_ChatActivity_getClientGuardAddress(JNIEnv *env, jobject thiz) {
+    if(not enigma4Client)
+    {
+        return nullptr;
+    }
+
+    return env->NewStringUTF(enigma4Client->getGuardAddress().c_str());
 }
