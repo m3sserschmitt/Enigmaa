@@ -15,8 +15,8 @@
     <string name="hello_first_fragment">Hello first fragment</string>
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
     <string name="enter_server_hostname">enter_server_hostname</string>
-    <string name="enter_hostname">Enter enigma server hostname</string>
-    <string name="ok">Ok</string>
+    <string name="enter_hostname">Set Guard Node Configurations</string>
+    <string name="ok">OK</string>
     <string name="shared_preferences">com.example.enigma</string>
     <string name="chats">Chats</string>
     <string name="contacts">Contacts</string>
@@ -32,4 +32,7 @@
     <string name="address">address</string>
     <string name="send">Send</string>
     <string name="sender">Sender</string>
+    <string name="_8080">8080</string>
+    <string name="port">Directory Port:</string>
+    <string name="hostname1">Hostname:</string>
 </resources>

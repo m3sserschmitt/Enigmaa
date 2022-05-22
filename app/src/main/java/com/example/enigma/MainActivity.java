@@ -16,23 +16,14 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.example.enigma.circuit.CircuitBuilder;
 import com.example.enigma.communications.MessagingService;
 import com.example.enigma.communications.MessagingServiceWorker;
-import com.example.enigma.communications.ServiceRestarter;
-import com.example.enigma.database.AppDatabase;
-import com.example.enigma.database.Node;
 import com.example.enigma.databinding.ActivityMainBinding;
 import com.example.enigma.setup.InitialSetupActivity;
 
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
@@ -41,9 +32,51 @@ public class MainActivity extends AppCompatActivity {
         System.loadLibrary("enigma");
     }
 
-    public interface SetupDoneListener {
-        
+    private final String TAG = "MainActivity";
+
+    private interface SetupDoneListener {
+        void initialSetupDone();
     }
+
+    private void startMessagingService()
+    {
+        Log.d(TAG, "startService called");
+        if(!MessagingService.isServiceRunning)
+        {
+            Intent messagingServiceIntent = new Intent(this, MessagingService.class);
+            ContextCompat.startForegroundService(this, messagingServiceIntent);
+        }
+    }
+
+    private void startMessagingServiceViaWorker() {
+
+        String UNIQUE_WORK_NAME = "StartMyServiceViaWorker";
+        WorkManager workManager = WorkManager.getInstance(this);
+
+        PeriodicWorkRequest request =
+                new PeriodicWorkRequest.Builder(
+                        MessagingServiceWorker.class,
+                        16,
+                        TimeUnit.MINUTES)
+                        .build();
+
+        workManager.enqueueUniquePeriodicWork(UNIQUE_WORK_NAME, ExistingPeriodicWorkPolicy.KEEP, request);
+    }
+
+    private void stopMessagingService()
+    {
+        Log.d(TAG, "stopService called");
+        if(MessagingService.isServiceRunning)
+        {
+            Intent messagingServiceIntent = new Intent(this, MessagingService.class);
+            stopService(messagingServiceIntent);
+        }
+    }
+
+    private final SetupDoneListener setupDoneListener = () -> {
+        startMessagingServiceViaWorker();
+        startMessagingService();
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,10 +119,14 @@ public class MainActivity extends AppCompatActivity {
                             Toast.makeText(getApplicationContext(), "Something went wrong",
                                     Toast.LENGTH_SHORT).show();
                         }
+
+                        setupDoneListener.initialSetupDone();
                     }
             );
 
             initialSetupActivityRegister.launch(initialSetupActivity);
+        } else {
+            setupDoneListener.initialSetupDone();
         }
     }
 }
