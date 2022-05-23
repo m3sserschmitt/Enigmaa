@@ -121,14 +121,8 @@ public class ScanQrCodeActivity extends AppCompatActivity implements
                 NodeDao nodeDao = appDatabaseInstance.nodeDao();
                 ContactDao contactDao = appDatabaseInstance.contactDao();
 
-                Contact contact = new Contact();
+                Contact contact = new Contact(address, sessionId, sessionKey, guardAddress, name);
                 Node node = new Node();
-
-                contact.setSessionId(sessionId);
-                contact.setSessionKey(sessionKey);
-                contact.setAddress(address);
-                contact.setGuardAddress(guardAddress);
-                contact.setNickName(name);
 
                 node.setAddress(address);
 
@@ -139,6 +133,7 @@ public class ScanQrCodeActivity extends AppCompatActivity implements
                     nodeDao.insertAll(node);
                     contactDao.insertAll(contact);
                 } else {
+                    contact.setId(contactControl.getId());
                     contactDao.update(contact);
                 }
 

@@ -1,6 +1,7 @@
 #include <jni.h>
 #include <string>
 #include <cstring>
+#include <thread>
 
 #include "./enigma4/libcryptography/include/cryptography/rsa.hh"
 #include "./enigma4/libenigma4-client/include/enigma4-client/enigma4_client.hh"
@@ -117,21 +118,6 @@ Java_com_example_enigma_communications_MessagingService_nativeClientConnected(
     return enigma4Client->isConnected();
 }
 
-//extern "C"
-//JNIEXPORT jstring JNICALL
-//Java_com_example_enigma_ScanQrCodeActivity_getContactAddressFromPublicKey(
-//        JNIEnv *env,
-//        jobject thiz,
-//        jstring publicKeyPEM) {
-//
-//    const char *publicKey = env->GetStringUTFChars(publicKeyPEM, nullptr);
-//
-//    string address;
-//    KEY_UTIL::getKeyHexDigest(publicKey, address);
-//
-//    return env->NewStringUTF(address.c_str());
-//}
-
 extern "C"
 JNIEXPORT jboolean JNICALL
 Java_com_example_enigma_ChatActivity_circuitLoaded(
@@ -217,10 +203,182 @@ Java_com_example_enigma_AddContactFragment_getLocalAddressFromPublicKey(
 extern "C"
 JNIEXPORT jstring JNICALL
 Java_com_example_enigma_ChatActivity_getClientGuardAddress(JNIEnv *env, jobject thiz) {
+
     if(not enigma4Client)
     {
         return nullptr;
     }
 
     return env->NewStringUTF(enigma4Client->getGuardAddress().c_str());
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_com_example_enigma_ChatActivity_sendMessage(
+        JNIEnv *env, jobject thiz,
+        jstring message,
+        jstring destination) {
+
+    if(not enigma4Client)
+    {
+        return -1;
+    }
+
+    const char *text = env->GetStringUTFChars(message, nullptr);
+    const char *destinationAddress = env->GetStringUTFChars(destination, nullptr);
+
+    return enigma4Client->writeDataWithEncryption((unsigned char *)text, strlen(text), destinationAddress);
+}
+
+/*
+static bool listenerStarted = false;
+static pthread_mutex_t listenerThreadMutex;
+
+typedef struct {
+    JNIEnv *env;
+    jobject object;
+} ListenerEnv;
+
+static void newMessageReceived(ListenerEnv *listenerEnv, unsigned char *data, const char *sessionId)
+{
+    jclass messagingServiceClass = listenerEnv->env->GetObjectClass(listenerEnv->object);
+    jmethodID jmethodId = listenerEnv->env->GetMethodID(messagingServiceClass,
+                                                        "onNewMessageReceived",
+                                                        "(Ljava/lang/String;Ljava/lang/String;)V");
+
+    jstring text = listenerEnv->env->NewStringUTF((char *)data);
+    jstring session = listenerEnv->env->NewStringUTF(sessionId);
+
+    listenerEnv->env->CallVoidMethod(listenerEnv->object, jmethodId, text, session);
+}
+
+static void *enigma4ClientListener(void *arg)
+{
+    if(not enigma4Client)
+    {
+        return nullptr;
+    }
+
+    ListenerEnv *listenerEnv = (ListenerEnv *)arg;
+
+    unsigned char *data = nullptr;
+    char *sessionId = nullptr;
+    int size;
+
+    pthread_mutex_lock(&listenerThreadMutex);
+
+    while(listenerStarted)
+    {
+        pthread_mutex_unlock(&listenerThreadMutex);
+
+        if((size = enigma4Client->readData(&data, &sessionId)) > 0)
+        {
+            data[size] = 0;
+            newMessageReceived(listenerEnv, data, sessionId);
+        }
+
+        this_thread::sleep_for(chrono::milliseconds(500));
+        pthread_mutex_lock(&listenerThreadMutex);
+    }
+
+     pthread_mutex_unlock(&listenerThreadMutex);
+
+    return nullptr;
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_enigma_communications_MessagingService_startClientListener(
+        JNIEnv *env,
+        jobject thiz) {
+
+    if(not listenerStarted)
+    {
+        pthread_mutex_init(&listenerThreadMutex, nullptr);
+
+        listenerStarted = true;
+        pthread_t listenerThread;
+
+        ListenerEnv *listenerEnv = new ListenerEnv;
+        listenerEnv->env = env;
+        listenerEnv->object = thiz;
+
+        pthread_create(&listenerThread, nullptr, enigma4ClientListener, listenerEnv);
+    }
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_enigma_communications_MessagingService_stopClientListener(
+        JNIEnv *env,
+        jobject thiz) {
+
+    pthread_mutex_lock(&listenerThreadMutex);
+    listenerStarted = false;
+    pthread_mutex_unlock(&listenerThreadMutex);
+}
+*/
+
+extern "C"
+JNIEXPORT int JNICALL
+Java_com_example_enigma_communications_MessagingService_loadContact(
+        JNIEnv *env,
+        jobject thiz,
+        jstring address,
+        jbyteArray sessionId,
+        jbyteArray sessionKey) {
+
+    if(not enigma4Client)
+    {
+        return -1;
+    }
+
+    string contactAddress = env->GetStringUTFChars(address, nullptr);
+    unsigned char *id = as_unsigned_char_array(env, sessionId);
+    unsigned char *key = as_unsigned_char_array(env, sessionKey);
+
+    return enigma4Client->addSession(contactAddress, id, key);
+}
+
+static int lastDataSize;
+static string lastSessionId;
+static unsigned char *lastMessageContent = nullptr;
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_example_enigma_communications_MessagingService_checkNewMessage(
+        JNIEnv *env,
+        jobject thiz) {
+
+    if(not enigma4Client)
+    {
+        return false;
+    }
+
+    delete[] lastMessageContent;
+    lastMessageContent = nullptr;
+
+    lastDataSize = enigma4Client->readData(&lastMessageContent, lastSessionId);
+    return lastDataSize > 0;
+}
+
+extern "C"
+JNIEXPORT jstring JNICALL
+Java_com_example_enigma_communications_MessagingService_readLastSessionId(
+        JNIEnv *env,
+        jobject thiz) {
+
+    return env->NewStringUTF(lastSessionId.c_str());
+}
+
+extern "C"
+JNIEXPORT jbyteArray JNICALL
+Java_com_example_enigma_communications_MessagingService_readLastMessage(
+        JNIEnv *env,
+        jobject thiz) {
+
+    jbyteArray bytes = env->NewByteArray(lastDataSize);
+    env->SetByteArrayRegion(bytes, 0, lastDataSize, (jbyte *)lastMessageContent);
+
+    return bytes;
 }

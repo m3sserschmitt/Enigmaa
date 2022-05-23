@@ -70,12 +70,11 @@ public class ContactsFragment extends Fragment {
 
             for(Contact contact : contacts)
             {
-                contactsList.add(new ContactItem(contact.getAddress(), contact.getNickName()));
+                contactsList.add(new ContactItem(contact.getAddress(), contact.getNickName(),
+                        contact.getSessionId()));
             }
 
-            handler.post(() -> {
-                populateRecyclerView(contactsList);
-            });
+            handler.post(() -> populateRecyclerView(contactsList));
         });
     }
 }

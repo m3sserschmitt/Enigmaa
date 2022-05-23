@@ -28,22 +28,29 @@ public class ContactAdapter
     static class ContactViewHolder extends RecyclerView.ViewHolder {
         private final TextView nameTextView;
         private final TextView addressTextView;
-        // private final ConstraintLayout contactLayout;
+
+        private String tag;
 
         public ContactViewHolder(Context context, @NonNull View itemView)
         {
             super(itemView);
+
             nameTextView = itemView.findViewById(R.id.contact_name_text_view);
             addressTextView = itemView.findViewById(R.id.contact_address_text_view);
-            // contactLayout = itemView.findViewById(R.id.contact_constraint_layout);
 
             itemView.setOnClickListener(v -> {
                 Intent chatActivityIntent = new Intent(context, ChatActivity.class);
                 chatActivityIntent.putExtra("address", addressTextView.getText().toString());
                 chatActivityIntent.putExtra("name", nameTextView.getText().toString());
+                chatActivityIntent.putExtra("sessionId", tag);
 
                 context.startActivity(chatActivityIntent);
             });
+        }
+
+        public void setTag(String tag)
+        {
+            this.tag = tag;
         }
     }
 
@@ -61,6 +68,7 @@ public class ContactAdapter
         ContactItem currentItem = contactsList.get(position);
         holder.nameTextView.setText(currentItem.getNickName());
         holder.addressTextView.setText(currentItem.getAddress());
+        holder.tag = currentItem.getSessionId();
     }
 
     @Override

@@ -25,6 +25,7 @@ import com.example.enigma.databinding.FragmentAddContactBinding;
 import com.example.enigma.qr.QrCodeHelper;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Random;
 import java.util.concurrent.Executors;
 
@@ -62,11 +63,14 @@ public class AddContactFragment extends Fragment {
     @Contract("_ -> new")
     private String generateSequence(int size)
     {
-        Random generator = new Random();
-        byte[] rawSessionKey = new byte[size];
-        generator.nextBytes(rawSessionKey);
+//        Random generator = new Random();
+//        byte[] data = new byte[size];
+//        generator.nextBytes(data);
 
-        return new String(Base64.encode(rawSessionKey, Base64.NO_CLOSE));
+        String sequence = "11111111111111111111111111111111111111111111111111";
+        byte[] data = sequence.subSequence(0, size).toString().getBytes(StandardCharsets.UTF_8);
+
+        return new String(Base64.encode(data, Base64.NO_CLOSE)).trim();
     }
 
     @Nullable

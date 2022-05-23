@@ -12,6 +12,7 @@ import java.util.List;
 
 public class MessageAdapter
 extends RecyclerView.Adapter<MessageAdapter.MessageViewHolder> {
+
     private final List<MessageItem> messages;
 
     public static class MessageViewHolder extends RecyclerView.ViewHolder
@@ -54,5 +55,11 @@ extends RecyclerView.Adapter<MessageAdapter.MessageViewHolder> {
         return messages.size();
     }
 
+    public void addNewMessage(String name, String content)
+    {
+        MessageItem newItem = new MessageItem(name, content);
+        messages.add(newItem);
 
+        notifyDataSetChanged();
+    }
 }

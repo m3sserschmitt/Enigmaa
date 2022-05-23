@@ -1,6 +1,7 @@
 package com.example.enigma.database;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
@@ -12,15 +13,24 @@ public class Message {
     @PrimaryKey(autoGenerate = true)
     private long id;
 
-    @NonNull
-    private String sender = "";
+    @Nullable
+    private String sender;
 
     @NonNull
-    private String destination = "";
+    private String sessionId;
 
+    @NonNull
     private String content;
 
     private long timestamp;
+
+    public Message(@Nullable String sender, @NonNull String sessionId, @NonNull String content)
+    {
+        this.sender = sender;
+        this.sessionId = sessionId;
+        this.content = content;
+        this.timestamp = new Date().getTime();
+    }
 
     public long getTimestamp() {
         return timestamp;
@@ -30,15 +40,15 @@ public class Message {
         this.timestamp = timestamp;
     }
 
-    public void setContent(String content) {
+    public void setContent(@NonNull String content) {
         this.content = content;
     }
 
-    public void setDestination(@NonNull String destination) {
-        this.destination = destination;
+    public void setSessionId(@NonNull String destination) {
+        this.sessionId = destination;
     }
 
-    public void setSender(@NonNull String from) {
+    public void setSender(@Nullable String from) {
         this.sender = from;
     }
 
@@ -46,16 +56,17 @@ public class Message {
         return id;
     }
 
+    @NonNull
     public String getContent() {
         return content;
     }
 
     @NonNull
-    public String getDestination() {
-        return destination;
+    public String getSessionId() {
+        return sessionId;
     }
 
-    @NonNull
+    @Nullable
     public String getSender() {
         return sender;
     }

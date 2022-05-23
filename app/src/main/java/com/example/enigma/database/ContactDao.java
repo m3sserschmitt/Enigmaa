@@ -17,6 +17,12 @@ public interface ContactDao {
     @Query("SELECT * FROM contacts WHERE address=:address")
     Contact findByAddress(String address);
 
+    @Query("SELECT * FROM contacts WHERE sessionId=:sessionId")
+    Contact findBySessionId(String sessionId);
+
+    @Query("SELECT * FROM contacts WHERE sessionId IN (:sessions)")
+    List<Contact> getContacts(List<String> sessions);
+
     @Update
     void update(Contact contact);
 

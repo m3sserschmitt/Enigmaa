@@ -10,7 +10,7 @@
         <entry key="app/src/main/res/drawable/ic_chats_background.xml" value="0.2035" />
         <entry key="app/src/main/res/drawable/ic_chats_foreground.xml" value="0.2035" />
         <entry key="app/src/main/res/drawable/ic_launcher_background.xml" value="0.2035" />
-        <entry key="app/src/main/res/layout/activity_chat.xml" value="0.25" />
+        <entry key="app/src/main/res/layout/activity_chat.xml" value="0.22" />
         <entry key="app/src/main/res/layout/activity_generate_keys.xml" value="0.21693840579710144" />
         <entry key="app/src/main/res/layout/activity_initial_setup.xml" value="0.18697916666666667" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.22" />
@@ -19,7 +19,7 @@
         <entry key="app/src/main/res/layout/contact.xml" value="0.21739130434782608" />
         <entry key="app/src/main/res/layout/content_initial_setup.xml" value="0.20697463768115942" />
         <entry key="app/src/main/res/layout/fragment_add_contact.xml" value="0.25" />
-        <entry key="app/src/main/res/layout/fragment_chats.xml" value="0.1656534954407295" />
+        <entry key="app/src/main/res/layout/fragment_chats.xml" value="0.1" />
         <entry key="app/src/main/res/layout/fragment_contacts.xml" value="0.27807971014492755" />
         <entry key="app/src/main/res/layout/fragment_first.xml" value="0.18697916666666667" />
         <entry key="app/src/main/res/layout/fragment_generate_key.xml" value="0.340625" />

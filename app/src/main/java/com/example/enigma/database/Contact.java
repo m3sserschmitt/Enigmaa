@@ -1,22 +1,50 @@
 package com.example.enigma.database;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.room.Entity;
+import androidx.room.PrimaryKey;
 
-@Entity(tableName = "contacts", primaryKeys = {"address"})
+@Entity(tableName = "contacts")
 public class Contact {
 
-    @NonNull private String address = "";
+    @PrimaryKey(autoGenerate = true)
+    private long id;
 
-    @NonNull private String sessionId = "";
+    @NonNull private String sessionId;
 
-    @NonNull private String sessionKey = "";
+    @Nullable
+    private String address;
 
-    @NonNull String guardAddress = "";
+    @NonNull private String sessionKey;
 
-    @NonNull String nickName = "";
+    @Nullable String guardAddress;
 
-    @NonNull public String getAddress()
+    @Nullable String nickName;
+
+    public Contact(@Nullable String address,
+                   @NonNull String sessionId,
+                   @NonNull String sessionKey,
+                   @Nullable String guardAddress,
+                    @Nullable String nickName)
+    {
+        this.address = address;
+        this.sessionId = sessionId;
+        this.sessionKey = sessionKey;
+        this.guardAddress = guardAddress;
+        this.nickName = nickName;
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    @Nullable
+    public String getAddress()
     {
         return address;
     }
@@ -33,11 +61,12 @@ public class Contact {
         this.guardAddress = guardAddress;
     }
 
-    @NonNull public String getGuardAddress() {
+    @Nullable
+    public String getGuardAddress() {
         return guardAddress;
     }
 
-    public void setAddress(@NonNull String address) {
+    public void setAddress(@Nullable String address) {
         this.address = address;
     }
 
@@ -49,11 +78,12 @@ public class Contact {
         this.sessionKey = sessionKey;
     }
 
-    @NonNull public String getNickName() {
+    @Nullable
+    public String getNickName() {
         return nickName;
     }
 
-    public void setNickName(@NonNull String nickName) {
+    public void setNickName(@Nullable String nickName) {
         this.nickName = nickName;
     }
 }

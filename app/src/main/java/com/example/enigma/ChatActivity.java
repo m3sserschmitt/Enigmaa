@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Base64;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -24,6 +25,7 @@ import com.example.enigma.database.MessageDao;
 import com.example.enigma.database.NodeDao;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Executors;
 
@@ -36,6 +38,7 @@ public class ChatActivity extends AppCompatActivity {
 
     private String contactName;
     private String foreignAddress;
+    private String sessionId;
 
     private EditText messageInputEditText;
 
@@ -48,6 +51,7 @@ public class ChatActivity extends AppCompatActivity {
 
         contactName = intent.getStringExtra("name");
         foreignAddress = intent.getStringExtra("address");
+        sessionId = intent.getStringExtra("sessionId");
 
         setTitle(contactName);
 
@@ -136,11 +140,6 @@ public class ChatActivity extends AppCompatActivity {
         });
     }
 
-    public void onSendButtonClicked(View view)
-    {
-
-    }
-
     private void populateRecyclerView(List<MessageItem> items)
     {
         if(messageAdapter == null)
@@ -161,10 +160,11 @@ public class ChatActivity extends AppCompatActivity {
         Executors.newSingleThreadExecutor().execute(() -> {
             MessageDao messageDao = databaseInstance.messageDao();
 
-            final List<Message> messages = messageDao.getConversation(foreignAddress);
+            final List<Message> messages = messageDao.getConversation(sessionId);
 
             for(Message message : messages)
             {
+                assert message.getSender() != null;
                 if(message.getSender().equals(foreignAddress))
                 {
                     messagesList.add(new MessageItem(contactName, message.getContent()));
@@ -177,6 +177,34 @@ public class ChatActivity extends AppCompatActivity {
         });
     }
 
+    private void insertMessageInDatabase(@NonNull String sessionId, @NonNull String content)
+    {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            Message message = new Message("You", sessionId, content);
+
+            AppDatabase databaseInstance = AppDatabase.getInstance(this);
+            MessageDao messageDao = databaseInstance.messageDao();
+
+            messageDao.insertAll(message);
+        });
+    }
+
+    public void onSendButtonClicked(View view)
+    {
+        String text = messageInputEditText.getText().toString();
+        if(text.length() != 0)
+        {
+            if(sendMessage(text, foreignAddress) < 0)
+            {
+                Toast.makeText(this, "Message could not be delivered", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            messageAdapter.addNewMessage("You", text);
+            insertMessageInDatabase(sessionId, text);
+        }
+    }
+
     private native boolean circuitLoaded(String destination);
 
     private native String loadNode(String lastAddress, String publicKey, boolean generateSessionId);
@@ -184,4 +212,6 @@ public class ChatActivity extends AppCompatActivity {
     private native int loadLastNodeInCircuit(String address, String lastAddress, byte[] sessionId, byte[] sessionKey);
 
     private native String getClientGuardAddress();
+
+    private native int sendMessage(String message, String destination);
 }

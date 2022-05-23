@@ -35,4 +35,5 @@
     <string name="_8080">8080</string>
     <string name="port">Directory Port:</string>
     <string name="hostname1">Hostname:</string>
+    <string name="message_content">Message Content</string>
 </resources>

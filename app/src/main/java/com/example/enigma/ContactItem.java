@@ -1,14 +1,26 @@
 package com.example.enigma;
 
 public class ContactItem {
+
     private String address;
 
     private String nickName;
 
-    public ContactItem(String address, String name)
+    private String sessionId;
+
+    public String getSessionId() {
+        return sessionId;
+    }
+
+    public void setSessionId(String sessionId) {
+        this.sessionId = sessionId;
+    }
+
+    public ContactItem(String address, String name, String sessionId)
     {
         this.address = address;
         this.nickName = name;
+        this.sessionId = sessionId;
     }
 
     public void setNickName(String nickName) {
