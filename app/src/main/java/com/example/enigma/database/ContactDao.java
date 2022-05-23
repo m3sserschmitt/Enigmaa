@@ -20,7 +20,7 @@ public interface ContactDao {
     @Query("SELECT * FROM contacts WHERE sessionId=:sessionId")
     Contact findBySessionId(String sessionId);
 
-    @Query("SELECT * FROM contacts WHERE sessionId IN (:sessions)")
+    @Query("SELECT * FROM contacts WHERE sessionId IN (:sessions) AND address NOT NULL")
     List<Contact> getContacts(List<String> sessions);
 
     @Update

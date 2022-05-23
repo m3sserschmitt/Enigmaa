@@ -14,11 +14,15 @@ import android.view.ViewGroup;
 import com.example.enigma.database.AppDatabase;
 import com.example.enigma.database.Contact;
 import com.example.enigma.database.ContactDao;
+import com.example.enigma.database.Message;
 import com.example.enigma.database.MessageDao;
 import com.example.enigma.databinding.FragmentChatsBinding;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.Executors;
 
 public class ChatsFragment extends Fragment {
@@ -39,6 +43,7 @@ public class ChatsFragment extends Fragment {
                              Bundle savedInstanceState) {
         binding = FragmentChatsBinding.inflate(inflater, container, false);
 
+        contactAdapter = new ContactAdapter(requireContext());
         getSessionsFromDatabase();
 
         return binding.getRoot();
@@ -46,11 +51,7 @@ public class ChatsFragment extends Fragment {
 
     private void populateRecyclerView(List<ContactItem> items)
     {
-        if(contactAdapter == null)
-        {
-            contactAdapter = new ContactAdapter(requireContext(), items);
-        }
-
+        contactAdapter.setItems(items);
         binding.chatsRecyclerView.setHasFixedSize(true);
         binding.chatsRecyclerView.setAdapter(contactAdapter);
     }
@@ -70,8 +71,16 @@ public class ChatsFragment extends Fragment {
 
             for(Contact contact : contacts)
             {
-                items.add(new ContactItem(contact.getAddress(), contact.getNickName(),
-                        contact.getSessionId()));
+                Message lastMessage = messageDao.getLastMessage(contact.getSessionId());
+//                String timeStamp = new SimpleDateFormat("yyyy/MM/dd HH:mm",
+//                        Locale.ENGLISH).format(new Date(lastMessage.getTimestamp()));
+
+                String address = contact.getAddress();
+
+
+                assert address != null;
+                items.add(new ContactItem(contact.getNickName(), address,
+                        lastMessage.getContent(), contact.getSessionId()));
             }
 
             handler.post(() -> populateRecyclerView(items));

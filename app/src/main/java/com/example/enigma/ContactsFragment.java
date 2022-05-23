@@ -42,6 +42,7 @@ public class ContactsFragment extends Fragment {
                              Bundle savedInstanceState) {
         binding = FragmentContactsBinding.inflate(inflater, container, false);
 
+        contactAdapter = new ContactAdapter(requireContext());
         getContactsFromDatabase();
 
         return binding.getRoot();
@@ -49,11 +50,7 @@ public class ContactsFragment extends Fragment {
 
     private void populateRecyclerView(List<ContactItem> items)
     {
-        if(contactAdapter == null)
-        {
-            contactAdapter = new ContactAdapter(requireContext(), items);
-        }
-
+        contactAdapter.setItems(items);
         binding.contactsRecyclerView.setHasFixedSize(true);
         binding.contactsRecyclerView.setAdapter(contactAdapter);
     }
@@ -70,8 +67,13 @@ public class ContactsFragment extends Fragment {
 
             for(Contact contact : contacts)
             {
-                contactsList.add(new ContactItem(contact.getAddress(), contact.getNickName(),
-                        contact.getSessionId()));
+                if(contact.getAddress() == null)
+                {
+                    continue;
+                }
+
+                contactsList.add(new ContactItem(contact.getNickName(), contact.getAddress(),
+                        contact.getAddress(), contact.getSessionId()));
             }
 
             handler.post(() -> populateRecyclerView(contactsList));

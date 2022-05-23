@@ -1,5 +1,6 @@
 package com.example.enigma;
 
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -46,8 +47,16 @@ extends RecyclerView.Adapter<MessageAdapter.MessageViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull MessageViewHolder holder, int position) {
         MessageItem currentItem = messages.get(position);
+        String name = currentItem.getName();
+
+        if(name.equals("You"))
+        {
+            holder.senderTextView.setGravity(Gravity.END);
+            holder.contentTextView.setGravity(Gravity.END);
+        }
+
+        holder.senderTextView.setText(name);
         holder.contentTextView.setText(currentItem.getContent());
-        holder.senderTextView.setText(currentItem.getName());
     }
 
     @Override

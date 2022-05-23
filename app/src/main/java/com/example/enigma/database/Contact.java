@@ -20,13 +20,13 @@ public class Contact {
 
     @Nullable String guardAddress;
 
-    @Nullable String nickName;
+    @NonNull String nickName;
 
     public Contact(@Nullable String address,
                    @NonNull String sessionId,
                    @NonNull String sessionKey,
                    @Nullable String guardAddress,
-                    @Nullable String nickName)
+                    @NonNull String nickName)
     {
         this.address = address;
         this.sessionId = sessionId;
@@ -78,12 +78,12 @@ public class Contact {
         this.sessionKey = sessionKey;
     }
 
-    @Nullable
+    @NonNull
     public String getNickName() {
         return nickName;
     }
 
-    public void setNickName(@Nullable String nickName) {
+    public void setNickName(@NonNull String nickName) {
         this.nickName = nickName;
     }
 }

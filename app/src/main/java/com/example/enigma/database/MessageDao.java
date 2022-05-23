@@ -18,6 +18,9 @@ public interface MessageDao {
     @Query("SELECT DISTINCT sessionId FROM messages")
     List<String> getConversations();
 
+    @Query("SELECT * FROM messages WHERE sessionId=:sessionId ORDER BY ROWID DESC LIMIT 1")
+    Message getLastMessage(String sessionId);
+
     @Insert
     void insertAll(Message... messages);
 }

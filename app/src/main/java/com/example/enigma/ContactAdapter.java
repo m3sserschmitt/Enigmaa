@@ -2,6 +2,7 @@ package com.example.enigma;
 
 import android.content.Context;
 import android.content.Intent;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,35 +23,33 @@ public class ContactAdapter
 {
     private final Context context;
 
-    private final List<ContactItem> contactsList;
-    private final List<ContactItem> contactsListFull;
+    private List<ContactItem> contactsList;
+    private List<ContactItem> contactsListFull;
 
     static class ContactViewHolder extends RecyclerView.ViewHolder {
         private final TextView nameTextView;
-        private final TextView addressTextView;
+        private final TextView additionalInfoTextView;
 
-        private String tag;
+        private String address;
+        private String name;
+        private String sessionId;
 
         public ContactViewHolder(Context context, @NonNull View itemView)
         {
             super(itemView);
 
             nameTextView = itemView.findViewById(R.id.contact_name_text_view);
-            addressTextView = itemView.findViewById(R.id.contact_address_text_view);
+            additionalInfoTextView = itemView.findViewById(R.id.contact_additional_info_text_view);
 
             itemView.setOnClickListener(v -> {
                 Intent chatActivityIntent = new Intent(context, ChatActivity.class);
-                chatActivityIntent.putExtra("address", addressTextView.getText().toString());
-                chatActivityIntent.putExtra("name", nameTextView.getText().toString());
-                chatActivityIntent.putExtra("sessionId", tag);
+
+                chatActivityIntent.putExtra("address", address);
+                chatActivityIntent.putExtra("name", name);
+                chatActivityIntent.putExtra("sessionId", sessionId);
 
                 context.startActivity(chatActivityIntent);
             });
-        }
-
-        public void setTag(String tag)
-        {
-            this.tag = tag;
         }
     }
 
@@ -66,9 +65,13 @@ public class ContactAdapter
     @Override
     public void onBindViewHolder(@NonNull ContactViewHolder holder, int position) {
         ContactItem currentItem = contactsList.get(position);
-        holder.nameTextView.setText(currentItem.getNickName());
-        holder.addressTextView.setText(currentItem.getAddress());
-        holder.tag = currentItem.getSessionId();
+
+        holder.nameTextView.setText(currentItem.getName());
+        holder.additionalInfoTextView.setText(currentItem.getAdditionalInfo());
+
+        holder.sessionId = currentItem.getSessionId();
+        holder.address = currentItem.getAddress();
+        holder.name = currentItem.getName();
     }
 
     @Override
@@ -76,12 +79,26 @@ public class ContactAdapter
         return contactsList.size();
     }
 
-    ContactAdapter(Context context, List<ContactItem> contacts)
+    public ContactAdapter(Context context, List<ContactItem> contacts)
     {
         this.context = context;
 
         contactsList = contacts;
         contactsListFull = new ArrayList<>(contacts);
+    }
+
+    public ContactAdapter(Context context)
+    {
+        this.context = context;
+
+        contactsList = new ArrayList<>();
+        contactsListFull = new ArrayList<>();
+    }
+
+    public void setItems(List<ContactItem> items)
+    {
+        contactsList = items;
+        contactsListFull = new ArrayList<>(items);
     }
 
     private final Filter contactsFilter = new Filter() {
@@ -98,7 +115,7 @@ public class ContactAdapter
 
                 for(ContactItem item : contactsListFull)
                 {
-                    if(item.getNickName().toLowerCase(Locale.ROOT).contains(filterPattern))
+                    if(item.getName().toLowerCase(Locale.ROOT).contains(filterPattern))
                     {
                         filteredContacts.add(item);
                     }
