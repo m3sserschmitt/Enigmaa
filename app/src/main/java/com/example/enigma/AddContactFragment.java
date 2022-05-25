@@ -21,12 +21,12 @@ import org.json.JSONObject;
 import android.util.Base64;
 import android.widget.Toast;
 
+import com.example.enigma.communications.MessagingService;
 import com.example.enigma.databinding.FragmentAddContactBinding;
 import com.example.enigma.qr.QrCodeHelper;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Random;
 import java.util.concurrent.Executors;
 
 public class AddContactFragment extends Fragment {
@@ -55,6 +55,8 @@ public class AddContactFragment extends Fragment {
             Intent scanQrCodeActivityIntent = new Intent(getContext(), ScanQrCodeActivity.class);
             startActivity(scanQrCodeActivityIntent);
         });
+
+        MessagingService.setNoSessionOnFocus();
 
         return binding.getRoot();
     }

@@ -5,21 +5,17 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
-import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 
-import com.example.enigma.ChatActivity;
 import com.example.enigma.FileUtils;
 import com.example.enigma.MainActivity;
 import com.example.enigma.R;
@@ -32,13 +28,14 @@ import com.example.enigma.database.MessageDao;
 import android.util.Base64;
 import android.widget.Toast;
 
-import java.io.File;
-import java.sql.Time;
-import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class MessagingService extends Service {
@@ -47,23 +44,13 @@ public class MessagingService extends Service {
         System.loadLibrary("enigma");
     }
 
-    private final String TAG = "MessagingService";
-    private final int SERVICE_NOTIFICATION_ID = -1;
+    private static String sessionOnFocus;
+
     private final String SERVICE_NOTIFICATION_CHANNEL_ID = "MESSAGING_SERVICE_NOTIFICATION_CHANNEL";
     private final String NEW_MESSAGE_NOTIFICATION_CHANNEL_ID = "NEW_MESSAGE_NOTIFICATION_CHANNEL";
 
-    public static boolean isServiceRunning;
-
-    private String publicKey;
-    private String privateKey;
-
-    private String guardAddress;
-
-    public MessagingService()
-    {
-        Log.d(TAG, "constructor called");
-        isServiceRunning = false;
-    }
+    private static boolean isServiceRunning;
+    private static HashMap<String, onMessageReceivedListener> listeners = new HashMap<>();
 
     private interface ClientConnectionListener {
         void clientConnected();
@@ -73,11 +60,44 @@ public class MessagingService extends Service {
         void contactsLoaded();
     }
 
+    public interface onMessageReceivedListener {
+        void onMessage(String messageContent, String sessionId);
+    }
+
+    public MessagingService()
+    {
+        isServiceRunning = false;
+    }
+
+    public static boolean isRunning()
+    {
+        return isServiceRunning;
+    }
+
+    public static void setOnNewMessageListener(onMessageReceivedListener listener, Class<?> cls)
+    {
+        listeners.put(cls.getName(), listener);
+    }
+
+    public static void setSessionOnFocus(@NonNull String sessionOnFocus)
+    {
+        MessagingService.sessionOnFocus = sessionOnFocus;
+    }
+
+    public static void setAllSessionsOnFocus()
+    {
+        MessagingService.sessionOnFocus = "";
+    }
+
+    public static void setNoSessionOnFocus()
+    {
+        MessagingService.sessionOnFocus = null;
+    }
+
     @Override
     public void onCreate()
     {
         super.onCreate();
-        Log.d(TAG, "onCreate called");
 
         createNotificationChannel(SERVICE_NOTIFICATION_CHANNEL_ID);
         createNotificationChannel(NEW_MESSAGE_NOTIFICATION_CHANNEL_ID);
@@ -94,8 +114,6 @@ public class MessagingService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId)
     {
-        Log.d(TAG, "onStartCommand called");
-
         Intent notificationIntent = new Intent(this, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
                 notificationIntent, 0);
@@ -107,6 +125,7 @@ public class MessagingService extends Service {
                                 .setContentIntent(pendingIntent)
                                         .build();
 
+        int SERVICE_NOTIFICATION_ID = -1;
         startForeground(SERVICE_NOTIFICATION_ID, notification);
         initAndConnectClientAsync();
         return START_STICKY;
@@ -120,7 +139,7 @@ public class MessagingService extends Service {
             NotificationChannel serviceChannel = new NotificationChannel(
                     channelId,
                     appName,
-                    NotificationManager.IMPORTANCE_DEFAULT
+                    NotificationManager.IMPORTANCE_HIGH
             );
             NotificationManager manager = getSystemService(NotificationManager.class);
             manager.createNotificationChannel(serviceChannel);
@@ -130,8 +149,6 @@ public class MessagingService extends Service {
     private void createNotification(String title, String content, int id)
     {
         Intent notificationIntent = new Intent(this, MainActivity.class);
-        //notificationIntent.putExtra("name", "");
-        //notificationIntent.putExtra("address", "");
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
                 notificationIntent, 0);
 
@@ -142,6 +159,7 @@ public class MessagingService extends Service {
                 .setSmallIcon(R.drawable.common_google_signin_btn_icon_dark)
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true)
+                .setPriority(Notification.PRIORITY_MAX)
                 .build();
 
         NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
@@ -151,7 +169,6 @@ public class MessagingService extends Service {
 
     @Override
     public void onDestroy() {
-        Log.d(TAG, "onDestroy called");
         isServiceRunning = false;
         stopForeground(true);
 
@@ -165,7 +182,11 @@ public class MessagingService extends Service {
 
     public boolean initializeClient()
     {
-        loadKeys();
+        FileUtils fileUtils = FileUtils.getInstance(this);
+
+        String publicKey = Objects.requireNonNull(fileUtils.readFile("public.pem")).trim();
+        String privateKey = Objects.requireNonNull(fileUtils.readFile("private.pem")).trim();
+
         return nativeInitializeClient(publicKey, privateKey, true);
     }
 
@@ -188,9 +209,7 @@ public class MessagingService extends Service {
             return false;
         }
 
-        guardAddress = nativeOpenConnection(guardHostname, onionPortNumber, guardPublicKey);
-
-        return guardAddress != null;
+        return nativeOpenConnection(guardHostname, onionPortNumber, guardPublicKey) != null;
     }
 
     public void connectClientAsync()
@@ -212,7 +231,7 @@ public class MessagingService extends Service {
 
             Contact sender = contactDao.findBySessionId(sessionId);
 
-            if(sender != null)
+            if(sender != null && sender.getAddress() != null)
             {
                 messageDao.insertAll(new Message(sender.getAddress(), sessionId, content));
             }
@@ -221,18 +240,30 @@ public class MessagingService extends Service {
 
     private void notifyUser(String messageContent, String sessionId)
     {
-        Executors.newSingleThreadExecutor().execute(() -> {
+        if(sessionOnFocus == null || (!sessionOnFocus.equals(sessionId)) && !sessionOnFocus.equals(""))
+        {
+            Executors.newSingleThreadExecutor().execute(() -> {
 
-            AppDatabase databaseInstance = AppDatabase.getInstance(this);
-            ContactDao contactDao = databaseInstance.contactDao();
-            Contact sender = contactDao.findBySessionId(sessionId);
+                AppDatabase databaseInstance = AppDatabase.getInstance(this);
+                ContactDao contactDao = databaseInstance.contactDao();
+                Contact sender = contactDao.findBySessionId(sessionId);
 
-            if(sender != null)
-            {
-                String name = sender.getNickName();
-                createNotification(name, messageContent, (int)sender.getId());
-            }
-        });
+                if(sender != null)
+                {
+                    String name = sender.getNickName();
+                    createNotification(name, messageContent, (int)sender.getId());
+                }
+            });
+        }
+    }
+
+    private void callbacks(String messageContent, String sessionId)
+    {
+        Set<Map.Entry<String, onMessageReceivedListener>> set = listeners.entrySet();
+
+        for (Map.Entry<String, onMessageReceivedListener> entry : set) {
+            entry.getValue().onMessage(messageContent, sessionId);
+        }
     }
 
     private void startClientListener()
@@ -249,6 +280,7 @@ public class MessagingService extends Service {
 
                     insertNewMessageInDatabase(messageContent, sessionId);
                     notifyUser(messageContent, sessionId);
+                    callbacks(messageContent, sessionId);
                 }
             }
         }, 0, 1000);
@@ -305,27 +337,6 @@ public class MessagingService extends Service {
                 }
             });
         });
-    }
-
-    private void loadKeys()
-    {
-        FileUtils fileUtils = FileUtils.getInstance(this);
-
-        publicKey = fileUtils.readFile("public.pem");
-        privateKey = fileUtils.readFile("private.pem");
-    }
-
-    public String getGuardAddress()
-    {
-        return guardAddress;
-    }
-
-    public String getPrivateKey() {
-        return privateKey;
-    }
-
-    public String getPublicKey() {
-        return publicKey;
     }
 
     private native boolean nativeInitializeClient(String publicKeyPEM, String privateKeyPEM, boolean useTls);

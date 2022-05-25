@@ -32,16 +32,13 @@ public class MainActivity extends AppCompatActivity {
         System.loadLibrary("enigma");
     }
 
-    private final String TAG = "MainActivity";
-
     private interface SetupDoneListener {
         void initialSetupDone();
     }
 
     private void startMessagingService()
     {
-        Log.d(TAG, "startService called");
-        if(!MessagingService.isServiceRunning)
+        if(!MessagingService.isRunning())
         {
             Intent messagingServiceIntent = new Intent(this, MessagingService.class);
             ContextCompat.startForegroundService(this, messagingServiceIntent);
@@ -65,8 +62,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void stopMessagingService()
     {
-        Log.d(TAG, "stopService called");
-        if(MessagingService.isServiceRunning)
+        if(MessagingService.isRunning())
         {
             Intent messagingServiceIntent = new Intent(this, MessagingService.class);
             stopService(messagingServiceIntent);
@@ -95,6 +91,11 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupWithNavController(binding.navView, navController);
 
         initialSetup();
+    }
+
+    @Override
+    protected void onUserLeaveHint() {
+        MessagingService.setNoSessionOnFocus();
     }
 
     private void initialSetup()

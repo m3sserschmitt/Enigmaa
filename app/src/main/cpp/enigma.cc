@@ -90,9 +90,9 @@ Java_com_example_enigma_communications_MessagingService_nativeOpenConnection(
         return nullptr;
     }
 
-    const char *serverPublicKey = env->GetStringUTFChars(guardPublicKeyPEM, nullptr);
-    const char *host = env->GetStringUTFChars(hostname, nullptr);
-    const char *portNumber = env->GetStringUTFChars(port, nullptr);
+    string serverPublicKey = env->GetStringUTFChars(guardPublicKeyPEM, nullptr);
+    string host = env->GetStringUTFChars(hostname, nullptr);
+    string portNumber = env->GetStringUTFChars(port, nullptr);
 
     if (enigma4Client->createConnection(host, portNumber, serverPublicKey) < 0)
     {

@@ -7,10 +7,12 @@ import androidx.fragment.app.Fragment;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.example.enigma.communications.MessagingService;
 import com.example.enigma.database.AppDatabase;
 import com.example.enigma.database.Contact;
 import com.example.enigma.database.ContactDao;
@@ -30,7 +32,10 @@ public class ChatsFragment extends Fragment {
     private FragmentChatsBinding binding;
     private ContactAdapter contactAdapter;
 
-    public ChatsFragment() { }
+    private MessagingService.onMessageReceivedListener onMessageReceivedListener;
+
+    public ChatsFragment() {
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -44,9 +49,18 @@ public class ChatsFragment extends Fragment {
         binding = FragmentChatsBinding.inflate(inflater, container, false);
 
         contactAdapter = new ContactAdapter(requireContext());
-        getSessionsFromDatabase();
+        onMessageReceivedListener = (messageContent, sessionId) -> contactAdapter.updateItemAdditionalInfo(
+                messageContent, sessionId);
 
         return binding.getRoot();
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState)
+    {
+        getSessionsFromDatabase();
+        MessagingService.setOnNewMessageListener(onMessageReceivedListener, this.getClass());
+        MessagingService.setAllSessionsOnFocus();
     }
 
     private void populateRecyclerView(List<ContactItem> items)
@@ -77,10 +91,19 @@ public class ChatsFragment extends Fragment {
 
                 String address = contact.getAddress();
 
+                if(address == null)
+                {
+                    continue;
+                }
 
-                assert address != null;
+                String content = lastMessage.getContent();
+                if(!lastMessage.getSender().equals(address))
+                {
+                    content = "You: " + content;
+                }
+
                 items.add(new ContactItem(contact.getNickName(), address,
-                        lastMessage.getContent(), contact.getSessionId()));
+                        content, contact.getSessionId()));
             }
 
             handler.post(() -> populateRecyclerView(items));

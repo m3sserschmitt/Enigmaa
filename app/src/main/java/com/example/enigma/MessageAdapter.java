@@ -1,6 +1,5 @@
 package com.example.enigma;
 
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -49,10 +48,10 @@ extends RecyclerView.Adapter<MessageAdapter.MessageViewHolder> {
         MessageItem currentItem = messages.get(position);
         String name = currentItem.getName();
 
-        if(name.equals("You"))
+        if(!currentItem.isForeign())
         {
-            holder.senderTextView.setGravity(Gravity.END);
-            holder.contentTextView.setGravity(Gravity.END);
+            holder.senderTextView.setTextAlignment(View.TEXT_ALIGNMENT_TEXT_END);
+            holder.contentTextView.setTextAlignment(View.TEXT_ALIGNMENT_TEXT_END);
         }
 
         holder.senderTextView.setText(name);
@@ -60,15 +59,22 @@ extends RecyclerView.Adapter<MessageAdapter.MessageViewHolder> {
     }
 
     @Override
+    public void onViewRecycled(@NonNull MessageViewHolder holder)
+    {
+        holder.senderTextView.setTextAlignment(View.TEXT_ALIGNMENT_TEXT_START);
+        holder.contentTextView.setTextAlignment(View.TEXT_ALIGNMENT_TEXT_START);
+    }
+
+    @Override
     public int getItemCount() {
         return messages.size();
     }
 
-    public void addNewMessage(String name, String content)
+    public void addNewMessage(String name, String content, boolean isForeign)
     {
-        MessageItem newItem = new MessageItem(name, content);
+        MessageItem newItem = new MessageItem(name, content, isForeign);
         messages.add(newItem);
 
-        notifyDataSetChanged();
+        notifyItemInserted(messages.size() - 1);
     }
 }

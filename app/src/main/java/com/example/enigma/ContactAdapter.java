@@ -101,6 +101,19 @@ public class ContactAdapter
         contactsListFull = new ArrayList<>(items);
     }
 
+    public void updateItemAdditionalInfo(String content, String sessionId)
+    {
+        for(int i = 0; i < contactsList.size(); i++)
+        {
+            if(contactsList.get(i).getSessionId().equals(sessionId))
+            {
+                contactsList.get(i).setAdditionalInfo(content);
+                notifyItemChanged(i);
+                break;
+            }
+        }
+    }
+
     private final Filter contactsFilter = new Filter() {
 
         @Override

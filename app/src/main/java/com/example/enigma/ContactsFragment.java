@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.example.enigma.communications.MessagingService;
 import com.example.enigma.database.AppDatabase;
 import com.example.enigma.database.Contact;
 import com.example.enigma.database.ContactDao;
@@ -44,7 +45,7 @@ public class ContactsFragment extends Fragment {
 
         contactAdapter = new ContactAdapter(requireContext());
         getContactsFromDatabase();
-
+        MessagingService.setNoSessionOnFocus();
         return binding.getRoot();
     }
 

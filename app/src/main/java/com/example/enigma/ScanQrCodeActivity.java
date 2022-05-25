@@ -21,6 +21,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.enigma.R;
+import com.example.enigma.communications.MessagingService;
 import com.example.enigma.database.AppDatabase;
 import com.example.enigma.database.Contact;
 import com.example.enigma.database.ContactDao;
@@ -101,6 +102,11 @@ public class ScanQrCodeActivity extends AppCompatActivity implements
         } else {
             requestPermissionLauncher.launch(Manifest.permission.CAMERA);
         }
+    }
+
+    @Override
+    protected void onUserLeaveHint() {
+        MessagingService.setNoSessionOnFocus();
     }
 
     private void insertData(String scannedData, String name)

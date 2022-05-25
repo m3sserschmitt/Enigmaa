@@ -5,9 +5,16 @@ public class MessageItem {
 
     private String content;
 
-    public MessageItem(String name, String content) {
+    private final boolean foreign;
+
+    public MessageItem(String name, String content, boolean foreign) {
         this.name = name;
         this.content = content;
+        this.foreign = foreign;
+    }
+
+    public boolean isForeign() {
+        return foreign;
     }
 
     public String getName() {

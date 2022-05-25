@@ -13,7 +13,7 @@ public class Message {
     @PrimaryKey(autoGenerate = true)
     private long id;
 
-    @Nullable
+    @NonNull
     private String sender;
 
     @NonNull
@@ -24,7 +24,7 @@ public class Message {
 
     private long timestamp;
 
-    public Message(@Nullable String sender, @NonNull String sessionId, @NonNull String content)
+    public Message(@NonNull String sender, @NonNull String sessionId, @NonNull String content)
     {
         this.sender = sender;
         this.sessionId = sessionId;
@@ -48,7 +48,7 @@ public class Message {
         this.sessionId = destination;
     }
 
-    public void setSender(@Nullable String from) {
+    public void setSender(@NonNull String from) {
         this.sender = from;
     }
 
@@ -66,7 +66,7 @@ public class Message {
         return sessionId;
     }
 
-    @Nullable
+    @NonNull
     public String getSender() {
         return sender;
     }
