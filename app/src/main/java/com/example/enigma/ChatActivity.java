@@ -10,7 +10,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Base64;
-import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -27,28 +26,18 @@ import com.example.enigma.database.MessageDao;
 import com.example.enigma.database.NodeDao;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.Executors;
 
 public class ChatActivity extends AppCompatActivity {
 
-    private AppDatabase databaseInstance;
     private MessageAdapter messageAdapter;
-
     private RecyclerView messagesRecyclerView;
+    private EditText messageInputEditText;
 
     private String contactName;
     private String foreignAddress;
     private String sessionId;
-
-    private EditText messageInputEditText;
-
-    public ChatActivity()
-    {
-
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,8 +52,6 @@ public class ChatActivity extends AppCompatActivity {
 
         setTitle(contactName);
 
-        databaseInstance = AppDatabase.getInstance(this);
-
         messagesRecyclerView = findViewById(R.id.messages_recycler_view);
         LinearLayoutManager layoutManager = (LinearLayoutManager) messagesRecyclerView.getLayoutManager();
         layoutManager.setStackFromEnd(true);
@@ -77,26 +64,13 @@ public class ChatActivity extends AppCompatActivity {
         MessagingService.setSessionOnFocus(sessionId);
     }
 
-//    @Override
-//    public void onBackPressed() {
-//        MessagingService.setNoSessionOnFocus();
-//
-//        super.onBackPressed();
-//    }
-
-//    @Override
-//    protected void onUserLeaveHint() {
-//        MessagingService.setNoSessionOnFocus();
-//    }
-
-    private final MessagingService.onMessageReceivedListener onMessageReceivedListener = (messageContent, sessionId) -> {
+    private final MessagingService.onMessageReceivedListener onMessageReceivedListener =
+            (messageContent, sessionId) -> {
         if(this.sessionId.equals(sessionId))
         {
             messageAdapter.addNewMessage(contactName, messageContent, true);
             Handler handler = new Handler(Looper.getMainLooper());
-            handler.post(() -> {
-                messagesRecyclerView.smoothScrollToPosition(messageAdapter.getItemCount() - 1);
-            });
+            handler.post(() -> messagesRecyclerView.smoothScrollToPosition(messageAdapter.getItemCount() - 1));
         }
     };
 
@@ -195,7 +169,7 @@ public class ChatActivity extends AppCompatActivity {
         Handler handler = new Handler(Looper.getMainLooper());
 
         Executors.newSingleThreadExecutor().execute(() -> {
-            MessageDao messageDao = databaseInstance.messageDao();
+            MessageDao messageDao = AppDatabase.getInstance(this).messageDao();
 
             final List<Message> messages = messageDao.getConversation(sessionId);
 

@@ -35,15 +35,12 @@ public class AddContactFragment extends Fragment {
     private static final int sessionIdSize = 16;
 
     private FragmentAddContactBinding binding;
-    private FileUtils fileUtils;
 
     public AddContactFragment() { }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        fileUtils = FileUtils.getInstance(requireActivity());
     }
 
     @Override
@@ -78,7 +75,7 @@ public class AddContactFragment extends Fragment {
     @Nullable
     private String exportData()
     {
-        String publicKey = fileUtils.readFile("public.pem");
+        String publicKey = FileUtils.getInstance(requireActivity()).readFile("public.pem");
         String sessionKey = generateSequence(sessionKeySize);
         String sessionId = generateSequence(sessionIdSize);
         String guardAddress = requireActivity()

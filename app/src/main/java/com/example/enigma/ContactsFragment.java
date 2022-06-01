@@ -24,9 +24,6 @@ import java.util.concurrent.Executors;
 public class ContactsFragment extends Fragment {
 
     private FragmentContactsBinding binding;
-    private AppDatabase databaseInstance;
-
-    private ContactAdapter contactAdapter;
 
     public ContactsFragment() {
     }
@@ -34,8 +31,6 @@ public class ContactsFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        databaseInstance = AppDatabase.getInstance(requireContext());
     }
 
     @Override
@@ -43,15 +38,15 @@ public class ContactsFragment extends Fragment {
                              Bundle savedInstanceState) {
         binding = FragmentContactsBinding.inflate(inflater, container, false);
 
-        contactAdapter = new ContactAdapter(requireContext());
         getContactsFromDatabase();
         MessagingService.setNoSessionOnFocus();
+
         return binding.getRoot();
     }
 
     private void populateRecyclerView(List<ContactItem> items)
     {
-        contactAdapter.setItems(items);
+        ContactAdapter contactAdapter = new ContactAdapter(requireContext(), items);
         binding.contactsRecyclerView.setHasFixedSize(true);
         binding.contactsRecyclerView.setAdapter(contactAdapter);
     }
@@ -63,7 +58,7 @@ public class ContactsFragment extends Fragment {
         Handler handler = new Handler(Looper.getMainLooper());
 
         Executors.newSingleThreadExecutor().execute(() -> {
-            ContactDao contactDao = databaseInstance.contactDao();
+            ContactDao contactDao = AppDatabase.getInstance(requireContext()).contactDao();
             final List<Contact> contacts = contactDao.getAll();
 
             for(Contact contact : contacts)
