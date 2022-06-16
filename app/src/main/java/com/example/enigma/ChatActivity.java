@@ -65,8 +65,8 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private final MessagingService.onMessageReceivedListener onMessageReceivedListener =
-            (messageContent, sessionId) -> {
-        if(this.sessionId.equals(sessionId))
+            (messageContent, contact) -> {
+        if(sessionId.equals(contact.getSessionId()))
         {
             messageAdapter.addNewMessage(contactName, messageContent, true);
             Handler handler = new Handler(Looper.getMainLooper());
@@ -94,7 +94,7 @@ public class ChatActivity extends AppCompatActivity {
             if(i == 0)
             {
                 //previousAddress = getSharedPreferences(getString(R.string.shared_preferences), MODE_PRIVATE).getString("guardAddress", "");
-                previousAddress = getClientGuardAddress();
+                previousAddress = OnionServices.getInstance().getClientGuardAddress();
             } else {
                 previousAddress = path.get(i - 1).getAddress();
             }
@@ -106,9 +106,11 @@ public class ChatActivity extends AppCompatActivity {
                 byte[] sessionId = decodeSequence(contact.getSessionId());
                 byte[] sessionKey = decodeSequence(contact.getSessionKey());
 
-                ok = loadLastNodeInCircuit(foreignAddress, previousAddress, sessionId, sessionKey) >= 0;
+                ok = OnionServices.getInstance().loadLastNodeInCircuit(foreignAddress,
+                        previousAddress, sessionId, sessionKey) >= 0;
             } else {
-                ok = loadNode(previousAddress, nodeDao.getPublicKey(item.getAddress()), true) != null;
+                ok = OnionServices.getInstance().loadNode(previousAddress,
+                        nodeDao.getPublicKey(item.getAddress()), true) != null;
             }
         }
 
@@ -120,7 +122,7 @@ public class ChatActivity extends AppCompatActivity {
         Handler handler = new Handler(Looper.getMainLooper());
 
         Executors.newSingleThreadExecutor().execute(() -> {
-            if(!circuitLoaded(foreignAddress))
+            if(!OnionServices.getInstance().circuitLoaded(foreignAddress))
             {
                 AppDatabase databaseInstance = AppDatabase.getInstance(this);
 
@@ -204,7 +206,7 @@ public class ChatActivity extends AppCompatActivity {
         String text = messageInputEditText.getText().toString().trim();
         if(text.length() != 0)
         {
-            if(sendMessage(text, foreignAddress) < 0)
+            if(OnionServices.getInstance().sendMessage(text, foreignAddress) < 0)
             {
                 Toast.makeText(this, "Message could not be delivered", Toast.LENGTH_SHORT).show();
                 return;
@@ -216,14 +218,4 @@ public class ChatActivity extends AppCompatActivity {
             insertMessageInDatabase(sessionId, text);
         }
     }
-
-    private native boolean circuitLoaded(String destination);
-
-    private native String loadNode(String lastAddress, String publicKey, boolean generateSessionId);
-
-    private native int loadLastNodeInCircuit(String address, String lastAddress, byte[] sessionId, byte[] sessionKey);
-
-    private native String getClientGuardAddress();
-
-    private native int sendMessage(String message, String destination);
 }

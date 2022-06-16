@@ -16,6 +16,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.navigation.fragment.NavHostFragment;
 
+import com.example.enigma.OnionServices;
 import com.example.enigma.R;
 import com.example.enigma.databinding.FragmentGenerateKeyBinding;
 
@@ -71,7 +72,8 @@ public class GenerateKeyFragment extends Fragment {
 
         executor.execute(() -> {
             // Todo: apply encryption over private key;
-            final int status = generatePrivateKey(publicKeyPath, privateKeyPath, keySize,
+            OnionServices onionServices = OnionServices.getInstance();
+            final int status = onionServices.generatePrivateKey(publicKeyPath, privateKeyPath, keySize,
                     false, passphrase);
 
             handler.post(() -> {
@@ -119,7 +121,4 @@ public class GenerateKeyFragment extends Fragment {
         super.onDestroyView();
         binding = null;
     }
-
-    public native int generatePrivateKey(String publicKeyFile, String privateKeyFile, int bits,
-                                         boolean encrypt, String passphrase);
 }

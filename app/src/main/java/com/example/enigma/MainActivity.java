@@ -28,10 +28,6 @@ import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
 
-    static {
-        System.loadLibrary("enigma");
-    }
-
     private interface SetupDoneListener {
         void initialSetupDone();
     }

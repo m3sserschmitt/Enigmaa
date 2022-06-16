@@ -49,8 +49,8 @@ public class ChatsFragment extends Fragment {
         binding = FragmentChatsBinding.inflate(inflater, container, false);
 
         contactAdapter = new ContactAdapter(requireContext());
-        onMessageReceivedListener = (messageContent, sessionId) -> contactAdapter.updateItemAdditionalInfo(
-                messageContent, sessionId);
+        onMessageReceivedListener = (messageContent, contact) ->
+                contactAdapter.updateItemAdditionalInfo(messageContent, contact);
 
         return binding.getRoot();
     }

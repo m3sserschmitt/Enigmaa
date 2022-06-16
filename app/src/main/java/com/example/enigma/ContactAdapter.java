@@ -13,6 +13,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.enigma.database.Contact;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -101,8 +103,9 @@ public class ContactAdapter
         contactsListFull = new ArrayList<>(items);
     }
 
-    public void updateItemAdditionalInfo(String content, String sessionId)
+    public void updateItemAdditionalInfo(String content, @NonNull Contact contact)
     {
+        String sessionId = contact.getSessionId();
         for(int i = 0; i < contactsList.size(); i++)
         {
             if(contactsList.get(i).getSessionId().equals(sessionId))

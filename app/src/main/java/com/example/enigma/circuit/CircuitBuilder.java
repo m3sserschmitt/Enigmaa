@@ -60,11 +60,8 @@ public class CircuitBuilder {
         }
     }
 
-    public void buildShortestCircuit(String startAddress)
+    public void buildShortestCircuit(Node startNode)
     {
-        Node startNode = graph.get(startAddress);
-        assert startNode != null;
-
         startNode.setDistance(0);
 
         PriorityQueue<Node> queue = new PriorityQueue<>();
@@ -94,11 +91,19 @@ public class CircuitBuilder {
         }
     }
 
+    public void buildShortestCircuit(String startAddress)
+    {
+        Node startNode = graph.get(startAddress);
+        assert startNode != null;
+
+        buildShortestCircuit(startNode);
+    }
+
     public List<Circuit> getShortestPath(String destinationAddress, AppDatabase databaseInstance)
     {
-        List<Circuit> path = new ArrayList<>();
         Node currentNode = graph.get(destinationAddress);
 
+        List<Circuit> path = new ArrayList<>();
         CircuitDao circuitDao = databaseInstance.circuitDao();
 
         int i = 0;

@@ -18,6 +18,7 @@ import androidx.core.app.NotificationCompat;
 
 import com.example.enigma.FileUtils;
 import com.example.enigma.MainActivity;
+import com.example.enigma.OnionServices;
 import com.example.enigma.R;
 import com.example.enigma.database.AppDatabase;
 import com.example.enigma.database.Contact;
@@ -26,6 +27,7 @@ import com.example.enigma.database.Message;
 import com.example.enigma.database.MessageDao;
 
 import android.util.Base64;
+import android.util.Log;
 import android.widget.Toast;
 
 import java.util.HashMap;
@@ -61,7 +63,7 @@ public class MessagingService extends Service {
     }
 
     public interface onMessageReceivedListener {
-        void onMessage(String messageContent, String sessionId);
+        void onMessage(String messageContent, Contact contact);
     }
 
     public MessagingService()
@@ -187,7 +189,7 @@ public class MessagingService extends Service {
         String publicKey = Objects.requireNonNull(fileUtils.readFile("public.pem")).trim();
         String privateKey = Objects.requireNonNull(fileUtils.readFile("private.pem")).trim();
 
-        return nativeInitializeClient(publicKey, privateKey, true);
+        return OnionServices.getInstance().initializeClient(publicKey, privateKey, true);
     }
 
     public void initializeClientAsync()
@@ -209,7 +211,7 @@ public class MessagingService extends Service {
             return false;
         }
 
-        return nativeOpenConnection(guardHostname, onionPortNumber, guardPublicKey) != null;
+        return OnionServices.getInstance().openConnection(guardHostname, onionPortNumber, guardPublicKey) != null;
     }
 
     public void connectClientAsync()
@@ -219,7 +221,7 @@ public class MessagingService extends Service {
 
     private String getMessageDecoded()
     {
-        return new String(readLastMessage());
+        return new String(OnionServices.getInstance().readLastMessage());
     }
 
     private void insertNewMessageInDatabase(String content, String sessionId)
@@ -259,10 +261,16 @@ public class MessagingService extends Service {
 
     private void callbacks(String messageContent, String sessionId)
     {
-        Set<Map.Entry<String, onMessageReceivedListener>> set = listeners.entrySet();
+        AppDatabase databaseInstance = AppDatabase.getInstance(this);
+        ContactDao contactDao = databaseInstance.contactDao();
+        Contact contact = contactDao.findBySessionId(sessionId);
 
-        for (Map.Entry<String, onMessageReceivedListener> entry : set) {
-            entry.getValue().onMessage(messageContent, sessionId);
+        if(contact != null)
+        {
+            Set<Map.Entry<String, onMessageReceivedListener>> set = listeners.entrySet();
+            for (Map.Entry<String, onMessageReceivedListener> entry : set) {
+                entry.getValue().onMessage(messageContent, contact);
+            }
         }
     }
 
@@ -273,9 +281,10 @@ public class MessagingService extends Service {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                if(checkNewMessage())
+
+                if(OnionServices.getInstance().checkNewMessage())
                 {
-                    String sessionId = readLastSessionId();
+                    String sessionId = OnionServices.getInstance().readLastSessionId();
                     String messageContent = getMessageDecoded();
 
                     insertNewMessageInDatabase(messageContent, sessionId);
@@ -308,10 +317,7 @@ public class MessagingService extends Service {
                 byte[] sessionId = Base64.decode(contact.getSessionId(), Base64.DEFAULT);
                 byte[] sessionKey = Base64.decode(contact.getSessionKey(), Base64.DEFAULT);
 
-                if(loadContact(contact.getAddress(), sessionId, sessionKey) < 0)
-                {
-                    return;
-                }
+                OnionServices.getInstance().loadContact(contact.getAddress(), sessionId, sessionKey);
             }
 
             contactsLoadedListener.contactsLoaded();
@@ -338,16 +344,4 @@ public class MessagingService extends Service {
             });
         });
     }
-
-    private native boolean nativeInitializeClient(String publicKeyPEM, String privateKeyPEM, boolean useTls);
-
-    private native String nativeOpenConnection(String hostname, String port, String guardPublicKeyPEM);
-
-    private native boolean checkNewMessage();
-
-    private native int loadContact(String address, byte[] sessionId, byte[] sessionKey);
-
-    private native String readLastSessionId();
-
-    private native byte[] readLastMessage();
 }
