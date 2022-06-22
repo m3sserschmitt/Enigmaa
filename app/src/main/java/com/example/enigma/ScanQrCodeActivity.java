@@ -10,17 +10,14 @@ import androidx.core.content.ContextCompat;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
-import android.database.sqlite.SQLiteConstraintException;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.InputType;
-import android.util.Base64;
 import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.example.enigma.R;
 import com.example.enigma.communications.MessagingService;
 import com.example.enigma.database.AppDatabase;
 import com.example.enigma.database.Contact;

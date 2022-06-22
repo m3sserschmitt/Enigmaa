@@ -14,9 +14,7 @@ import androidx.work.WorkManager;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.example.enigma.communications.MessagingService;
@@ -96,13 +94,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void initialSetup()
     {
-        SharedPreferences sharedPreferences = this.getSharedPreferences(
-                getString(R.string.shared_preferences), MODE_PRIVATE);
+        LocalAppStorage localAppStorage = new LocalAppStorage(this);
+        String privateKeyPath = localAppStorage.getPrivateKeyPath();
+        String guardHostname = localAppStorage.getGuardHostname();
 
-        String privateKey = sharedPreferences.getString("privateKey", null);
-        String guardHostname = sharedPreferences.getString("guardHostname", null);
-
-        if(privateKey == null || guardHostname == null)
+        if(privateKeyPath == null || guardHostname == null)
         {
             Intent initialSetupActivity = new Intent(this, InitialSetupActivity.class);
 

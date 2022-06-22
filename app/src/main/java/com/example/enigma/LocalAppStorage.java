@@ -44,35 +44,102 @@ public class LocalAppStorage {
         return "private.pem";
     }
 
+    public void setStringValue(@NonNull String key, @NonNull String value)
+    {
+        sharedPreferences.edit().putString(key, value).apply();
+    }
+
+    @Nullable
+    public String getStringValue(@NonNull String key)
+    {
+        return sharedPreferences.getString(key, null);
+    }
+
     public void setPublicKeyPath(String publicKeyPath)
     {
-        sharedPreferences.edit().putString("publicKey", publicKeyPath).apply();
+        setStringValue("publicKeyPath", publicKeyPath);
+    }
+
+    @Nullable
+    public String getPublicKeyPath()
+    {
+        return getStringValue("publicKeyPath");
     }
 
     public void setPrivateKeyPath(String privateKeyPath)
     {
-        sharedPreferences.edit().putString("privateKey", privateKeyPath).apply();
+        setStringValue("privateKeyPath", privateKeyPath);
+    }
+
+    @Nullable
+    public String getPrivateKeyPath()
+    {
+        return getStringValue("privateKeyPath");
     }
 
     public void setLocalAddress(String localAddress)
     {
-        sharedPreferences.edit().putString("localAddress", localAddress).apply();
+        setStringValue("localAddress", localAddress);
     }
 
     @Nullable
     public String getLocalAddress()
     {
-        return sharedPreferences.getString("localAddress", null);
+        return getStringValue("localAddress");
     }
 
     public void setGuardAddress(String guardAddress)
     {
-        sharedPreferences.edit().putString("guardAddress", guardAddress).apply();
+        setStringValue("guardAddress", guardAddress);
     }
 
     @Nullable
     public String getGuardAddress()
     {
-        return sharedPreferences.getString("guardAddress", null);
+        return getStringValue("guardAddress");
+    }
+
+    public void setGuardHostname(String guardHostname)
+    {
+        setStringValue("guardHostname", guardHostname);
+    }
+
+    @Nullable
+    public String getGuardHostname()
+    {
+        return getStringValue("guardHostname");
+    }
+
+    public void setDirectoryPortNumber(String directoryPortNumber)
+    {
+        setStringValue("directoryPortNumber", directoryPortNumber);
+    }
+
+    @Nullable
+    public String getDirectoryPortNumber()
+    {
+        return getStringValue("directoryPortNumber");
+    }
+
+    public void setOnionServicePortNumber(@NonNull String onionServicePortNumber)
+    {
+        setStringValue("onionServicePortNumber", onionServicePortNumber);
+    }
+
+    @Nullable
+    public String getOnionServicePortNumber()
+    {
+        return getStringValue("onionServicePortNumber");
+    }
+
+    public void setGuardPublicKeyPEM(@NonNull String guardPublicKeyPEM)
+    {
+        setStringValue("guardPublicKeyPEM", guardPublicKeyPEM);
+    }
+
+    @Nullable
+    public String getGuardPublicKeyPEM()
+    {
+        return getStringValue("guardPublicKeyPEM");
     }
 }

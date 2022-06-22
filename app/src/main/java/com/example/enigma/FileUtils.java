@@ -2,6 +2,7 @@ package com.example.enigma;
 
 import android.content.Context;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.io.BufferedReader;
@@ -12,7 +13,7 @@ public class FileUtils {
     private final File filesDir;
     private static FileUtils instance;
 
-    private FileUtils(Context context)
+    private FileUtils(@NonNull Context context)
     {
         filesDir = context.getFilesDir();
     }

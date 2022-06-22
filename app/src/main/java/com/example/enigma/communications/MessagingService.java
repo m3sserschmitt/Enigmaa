@@ -6,7 +6,6 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
@@ -16,7 +15,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
-import com.example.enigma.App;
 import com.example.enigma.FileUtils;
 import com.example.enigma.LocalAppStorage;
 import com.example.enigma.MainActivity;
@@ -29,13 +27,11 @@ import com.example.enigma.database.Message;
 import com.example.enigma.database.MessageDao;
 
 import android.util.Base64;
-import android.util.Log;
 import android.widget.Toast;
 
 import org.json.JSONObject;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -205,19 +201,19 @@ public class MessagingService extends Service {
 
     public boolean connectClient()
     {
-        SharedPreferences sharedPreferences = getSharedPreferences(
-                getString(R.string.shared_preferences), MODE_PRIVATE);
+        LocalAppStorage localAppStorage = new LocalAppStorage(this);
 
-        String guardHostname = sharedPreferences.getString("guardHostname", null);
-        String guardPublicKey = sharedPreferences.getString("guardPublicKey", null);
-        String onionPortNumber = sharedPreferences.getString("onionPortNumber", null);
+        String guardHostname = localAppStorage.getGuardHostname();
+        String guardPublicKeyPEM = localAppStorage.getGuardPublicKeyPEM();
+        String onionPortNumber = localAppStorage.getOnionServicePortNumber();
 
-        if(guardHostname == null || guardPublicKey == null || onionPortNumber == null)
+        if(guardHostname == null || guardPublicKeyPEM == null || onionPortNumber == null)
         {
             return false;
         }
 
-        return OnionServices.getInstance().openConnection(guardHostname, onionPortNumber, guardPublicKey) != null;
+        return OnionServices.getInstance().
+                openConnection(guardHostname, onionPortNumber, guardPublicKeyPEM) != null;
     }
 
     public void connectClientAsync()

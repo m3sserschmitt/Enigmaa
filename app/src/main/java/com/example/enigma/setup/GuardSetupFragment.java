@@ -2,7 +2,6 @@ package com.example.enigma.setup;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -16,8 +15,8 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 
+import com.example.enigma.LocalAppStorage;
 import com.example.enigma.NetworkGraphParser;
-import com.example.enigma.R;
 import com.example.enigma.database.AppDatabase;
 import com.example.enigma.databinding.FragmentGuardSetupBinding;
 
@@ -30,8 +29,6 @@ import java.util.concurrent.Executors;
 public class GuardSetupFragment extends Fragment {
 
     private FragmentGuardSetupBinding binding;
-    private FragmentActivity activity;
-    private SharedPreferences sharedPreferences;
 
     private String guardHostname;
     private String directoryPortNumber;
@@ -82,20 +79,22 @@ public class GuardSetupFragment extends Fragment {
         directoryPortNumber = binding.directoryPortNumberEditText.getText().toString();
         onionServicePortNumber = binding.onionServicePortNumberTextEdit.getText().toString();
 
+        Context context = requireActivity();
+
         if(guardHostname.equals(""))
         {
-            Toast.makeText(activity, "Enter a valid hostname", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, "Enter a valid hostname", Toast.LENGTH_SHORT).show();
 
             return false;
         } else if(directoryPortNumber.equals(""))
         {
-            Toast.makeText(activity, "Enter a valid directory port number", Toast.LENGTH_SHORT)
+            Toast.makeText(context, "Enter a valid directory port number", Toast.LENGTH_SHORT)
                     .show();
 
             return false;
         } else if(onionServicePortNumber.equals(""))
         {
-            Toast.makeText(activity, "Enter a valid directory port number", Toast.LENGTH_SHORT)
+            Toast.makeText(context, "Enter a valid directory port number", Toast.LENGTH_SHORT)
                     .show();
         }
 
@@ -104,13 +103,13 @@ public class GuardSetupFragment extends Fragment {
 
     private void finishSetup()
     {
-        SharedPreferences.Editor editor = sharedPreferences.edit();
+        LocalAppStorage localAppStorage = new LocalAppStorage(requireActivity());
 
-        editor.putString("guardHostname", guardHostname);
-        editor.putString("directoryPortNumber", directoryPortNumber);
-        editor.putString("onionPortNumber", onionServicePortNumber);
+        localAppStorage.setGuardHostname(guardHostname);
+        localAppStorage.setDirectoryPortNumber(directoryPortNumber);
+        localAppStorage.setOnionServicePortNumber(onionServicePortNumber);
 
-        editor.apply();
+        FragmentActivity activity = requireActivity();
 
         activity.setResult(Activity.RESULT_OK);
         activity.finish();
@@ -151,7 +150,7 @@ public class GuardSetupFragment extends Fragment {
 
     private void parseNetworkGraph(@Nullable String networkGraph, Handler handler)
     {
-        AppDatabase databaseInstance = AppDatabase.getInstance(activity);
+        AppDatabase databaseInstance = AppDatabase.getInstance(requireActivity());
         NetworkGraphParser graphParser = new NetworkGraphParser(databaseInstance);
 
         if(!graphParser.parse(networkGraph))
@@ -159,12 +158,10 @@ public class GuardSetupFragment extends Fragment {
             setupDoneListener.setupDone(Status.GRAPH_PARSING_FAILED, handler);
         }
 
-        SharedPreferences.Editor editor = sharedPreferences.edit();
+        LocalAppStorage localAppStorage = new LocalAppStorage(requireActivity());
 
-        editor.putString("guardAddress", graphParser.getGuardAddress());
-        editor.putString("guardPublicKey", graphParser.getGuardPublicKey());
-
-        editor.apply();
+        localAppStorage.setGuardAddress(graphParser.getGuardAddress());
+        localAppStorage.setGuardPublicKeyPEM(graphParser.getGuardPublicKey());
 
         setupDoneListener.setupDone(Status.SUCCESS, handler);
     }
@@ -195,9 +192,6 @@ public class GuardSetupFragment extends Fragment {
             Bundle savedInstanceState
     ) {
         binding = FragmentGuardSetupBinding.inflate(inflater, container, false);
-        activity = requireActivity();
-        sharedPreferences = activity.getSharedPreferences(getString(R.string.shared_preferences),
-                Context.MODE_PRIVATE);
 
         return binding.getRoot();
     }
