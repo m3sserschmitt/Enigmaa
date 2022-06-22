@@ -38,10 +38,14 @@ public class ContactsFragment extends Fragment {
                              Bundle savedInstanceState) {
         binding = FragmentContactsBinding.inflate(inflater, container, false);
 
+        return binding.getRoot();
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState)
+    {
         getContactsFromDatabase();
         MessagingService.setNoSessionOnFocus();
-
-        return binding.getRoot();
     }
 
     private void populateRecyclerView(List<ContactItem> items)
@@ -68,8 +72,16 @@ public class ContactsFragment extends Fragment {
                     continue;
                 }
 
+                String contactAddress = contact.getAddress();
+                String additionalInfo = contactAddress;
+
+                if(contactAddress.equals(OnionServices.getDefaultAddress()))
+                {
+                    additionalInfo = "Pending confirmation";
+                }
+
                 contactsList.add(new ContactItem(contact.getNickName(), contact.getAddress(),
-                        contact.getAddress(), contact.getSessionId()));
+                        additionalInfo, contact.getSessionId()));
             }
 
             handler.post(() -> populateRecyclerView(contactsList));

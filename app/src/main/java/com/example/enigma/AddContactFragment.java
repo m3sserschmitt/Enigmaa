@@ -54,18 +54,19 @@ public class AddContactFragment extends Fragment {
                              Bundle savedInstanceState) {
         binding = FragmentAddContactBinding.inflate(inflater, container, false);
 
-        binding.scanButton.setOnClickListener(v -> {
-            Intent scanQrCodeActivityIntent = new Intent(getContext(), ScanQrCodeActivity.class);
-            startActivity(scanQrCodeActivityIntent);
-        });
+        return binding.getRoot();
+    }
 
-        binding.saveExportedButton.setOnClickListener(v -> {
-            onSaveExportedButtonPressed();
-        });
+    @Override
+    public void onViewCreated(@NonNull View view, Bundle bundle)
+    {
+        generateQrCodeFromExportedData();
+
+        binding.scanButton.setOnClickListener(v -> onScanButtonPressed());
+
+        binding.saveExportedButton.setOnClickListener(v -> onSaveExportedButtonPressed());
 
         MessagingService.setNoSessionOnFocus();
-
-        return binding.getRoot();
     }
 
     private class ExportedContactData {
@@ -80,8 +81,6 @@ public class AddContactFragment extends Fragment {
 
         private String address;
 
-        public ExportedContactData() {}
-
         public ExportedContactData(String publicKeyFile)
         {
             createExportedContactData(publicKeyFile);
@@ -91,14 +90,15 @@ public class AddContactFragment extends Fragment {
         @Contract("_ -> new")
         private String generateSequence(int size)
         {
-            Random generator = new Random();
-            byte[] data = new byte[size];
-            generator.nextBytes(data);
+//            Random generator = new Random();
+//            byte[] data = new byte[size];
+//            generator.nextBytes(data);
 
-            //String sequence = "11111111111111111111111111111111111111111111111111";
-            //byte[] data = sequence.subSequence(0, size).toString().getBytes(StandardCharsets.UTF_8);
+            // for tests only
+            String sequence = "11111111111111111111111111111111111111111111111111";
+            byte[] data = sequence.subSequence(0, size).toString().getBytes(StandardCharsets.UTF_8);
 
-            return new String(Base64.encode(data, Base64.NO_CLOSE)).trim();
+            return new String(Base64.encode(data, Base64.DEFAULT)).trim();
         }
 
         public void createExportedContactData(String publicKeyFile)
@@ -156,11 +156,19 @@ public class AddContactFragment extends Fragment {
             AppDatabase databaseInstance = AppDatabase.getInstance(requireActivity());
             ContactDao contactDao = databaseInstance.contactDao();
 
-            Contact contact = new Contact("unknown", exportedContactData.getSessionId(),
-                    exportedContactData.getSessionKey(), "unknown", contactName);
+            Contact contact = new Contact(OnionServices.getDefaultAddress(),
+                    exportedContactData.getSessionId(),
+                    exportedContactData.getSessionKey(),
+                    OnionServices.getDefaultAddress(), contactName);
 
             contactDao.insertAll(contact);
         });
+    }
+
+    private void onScanButtonPressed()
+    {
+        Intent scanQrCodeActivityIntent = new Intent(getContext(), ScanQrCodeActivity.class);
+        startActivity(scanQrCodeActivityIntent);
     }
 
     private void onSaveExportedButtonPressed()
@@ -205,11 +213,5 @@ public class AddContactFragment extends Fragment {
                 }
             });
         });
-    }
-
-    @Override
-    public void onViewCreated(@NonNull View view, Bundle bundle)
-    {
-        generateQrCodeFromExportedData();
     }
 }

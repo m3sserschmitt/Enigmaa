@@ -16,7 +16,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
+import com.example.enigma.App;
 import com.example.enigma.FileUtils;
+import com.example.enigma.LocalAppStorage;
 import com.example.enigma.MainActivity;
 import com.example.enigma.OnionServices;
 import com.example.enigma.R;
@@ -29,6 +31,8 @@ import com.example.enigma.database.MessageDao;
 import android.util.Base64;
 import android.util.Log;
 import android.widget.Toast;
+
+import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -52,7 +56,7 @@ public class MessagingService extends Service {
     private final String NEW_MESSAGE_NOTIFICATION_CHANNEL_ID = "NEW_MESSAGE_NOTIFICATION_CHANNEL";
 
     private static boolean isServiceRunning;
-    private static HashMap<String, onMessageReceivedListener> listeners = new HashMap<>();
+    private static final HashMap<String, onMessageReceivedListener> listeners = new HashMap<>();
 
     private interface ClientConnectionListener {
         void clientConnected();
@@ -168,7 +172,6 @@ public class MessagingService extends Service {
         notificationManager.notify(null, id, notification);
     }
 
-
     @Override
     public void onDestroy() {
         isServiceRunning = false;
@@ -186,8 +189,11 @@ public class MessagingService extends Service {
     {
         FileUtils fileUtils = FileUtils.getInstance(this);
 
-        String publicKey = Objects.requireNonNull(fileUtils.readFile("public.pem")).trim();
-        String privateKey = Objects.requireNonNull(fileUtils.readFile("private.pem")).trim();
+        String publicKey = Objects.requireNonNull(
+                fileUtils.readFile(LocalAppStorage.getDefaultPublicKeyFileName())).trim();
+
+        String privateKey = Objects.requireNonNull(
+                fileUtils.readFile(LocalAppStorage.getDefaultPrivateKeyFileName())).trim();
 
         return OnionServices.getInstance().initializeClient(publicKey, privateKey, true);
     }
@@ -219,59 +225,160 @@ public class MessagingService extends Service {
         Executors.newSingleThreadExecutor().execute(this::connectClient);
     }
 
-    private String getMessageDecoded()
-    {
-        return new String(OnionServices.getInstance().readLastMessage());
+    private static class MessageParser {
+        JSONObject messageContent;
+
+        public MessageParser(String jsonContent)
+        {
+            try {
+                messageContent = new JSONObject(jsonContent);
+            } catch (Exception e)
+            {
+                messageContent = null;
+            }
+        }
+
+        @Nullable
+        public String getField(String fieldName)
+        {
+            String content;
+            try {
+                content = messageContent.getString(fieldName);
+            } catch (Exception e)
+            {
+                return null;
+            }
+
+            return content;
+        }
+
+        @Nullable
+        public String getMessageOrigin() {
+            return getField("address");
+        }
+
+        @Nullable
+        public String getOriginGuardAddress()
+        {
+            return getField("guardAddress");
+        }
+
+        @Nullable
+        public String getMessageContent()
+        {
+            return getField("message");
+        }
     }
 
-    private void insertNewMessageInDatabase(String content, String sessionId)
+    @NonNull
+    private MessageParser getMessageDecoded()
     {
+        String content = new String(OnionServices.getInstance().readLastMessage());
+
+        return new MessageParser(content);
+    }
+
+    private void insertNewMessageInDatabase(@NonNull Contact sender, @NonNull MessageParser messageParser)
+    {
+        String content = messageParser.getMessageContent();
+
+        if(content == null)
+        {
+            return;
+        }
+
         Executors.newSingleThreadExecutor().execute(() -> {
             AppDatabase databaseInstance = AppDatabase.getInstance(this);
             MessageDao messageDao = databaseInstance.messageDao();
-            ContactDao contactDao = databaseInstance.contactDao();
 
-            Contact sender = contactDao.findBySessionId(sessionId);
+            String senderAddress = sender.getAddress();
+            String senderSession = sender.getSessionId();
 
-            if(sender != null && sender.getAddress() != null)
+            if(senderAddress != null)
             {
-                messageDao.insertAll(new Message(sender.getAddress(), sessionId, content));
+                messageDao.insertAll(
+                        new Message(senderAddress, senderSession, content));
             }
         });
     }
 
-    private void notifyUser(String messageContent, String sessionId)
+    private void notifyUser(@NonNull Contact sender, @NonNull MessageParser messageParser)
     {
+        String messageContent = messageParser.getMessageContent();
+
+        if(messageContent == null)
+        {
+            return;
+        }
+
+        String sessionId = sender.getSessionId();
+
         if(sessionOnFocus == null || (!sessionOnFocus.equals(sessionId)) && !sessionOnFocus.equals(""))
         {
-            Executors.newSingleThreadExecutor().execute(() -> {
-
-                AppDatabase databaseInstance = AppDatabase.getInstance(this);
-                ContactDao contactDao = databaseInstance.contactDao();
-                Contact sender = contactDao.findBySessionId(sessionId);
-
-                if(sender != null)
-                {
-                    String name = sender.getNickName();
-                    createNotification(name, messageContent, (int)sender.getId());
-                }
-            });
+            createNotification(sender.getNickName(), messageContent, (int)sender.getId());
         }
     }
 
-    private void callbacks(String messageContent, String sessionId)
+    private void callbacks(@NonNull Contact sender, @NonNull MessageParser messageParser)
+    {
+        String messageContent = messageParser.getMessageContent();
+
+        Set<Map.Entry<String, onMessageReceivedListener>> set = listeners.entrySet();
+        for (Map.Entry<String, onMessageReceivedListener> entry : set) {
+            entry.getValue().onMessage(messageContent, sender);
+        }
+    }
+
+    private Contact checkContact(Contact contact, MessageParser messageParser)
+    {
+        if(contact == null)
+        {
+            return null;
+        }
+
+        String messageOrigin = messageParser.getMessageOrigin();
+        boolean updated = false;
+
+        if(contact.getAddress().equals(OnionServices.getDefaultAddress()))
+        {
+            if(messageOrigin == null)
+            {
+                return null;
+            }
+            updated = true;
+            contact.setAddress(messageOrigin);
+        }
+
+        String originGuard = messageParser.getOriginGuardAddress();
+        if(contact.getGuardAddress().equals(OnionServices.getDefaultAddress()))
+        {
+            if(originGuard == null)
+            {
+                return null;
+            }
+
+            updated = true;
+            contact.setGuardAddress(originGuard);
+        }
+
+        if(updated)
+        {
+            AppDatabase databaseInstance = AppDatabase.getInstance(this);
+            ContactDao contactDao = databaseInstance.contactDao();
+
+            contactDao.update(contact);
+        }
+
+        return contact;
+    }
+
+    private Contact getContact(MessageParser messageParser, String sessionId)
     {
         AppDatabase databaseInstance = AppDatabase.getInstance(this);
         ContactDao contactDao = databaseInstance.contactDao();
         Contact contact = contactDao.findBySessionId(sessionId);
 
-        if(contact != null)
-        {
-            Set<Map.Entry<String, onMessageReceivedListener>> set = listeners.entrySet();
-            for (Map.Entry<String, onMessageReceivedListener> entry : set) {
-                entry.getValue().onMessage(messageContent, contact);
-            }
-        }
+        return checkContact(contact, messageParser);
     }
 
     private void startClientListener()
@@ -285,11 +392,12 @@ public class MessagingService extends Service {
                 if(OnionServices.getInstance().checkNewMessage())
                 {
                     String sessionId = OnionServices.getInstance().readLastSessionId();
-                    String messageContent = getMessageDecoded();
+                    MessageParser messageParser = getMessageDecoded();
+                    Contact sender = getContact(messageParser, sessionId);
 
-                    insertNewMessageInDatabase(messageContent, sessionId);
-                    notifyUser(messageContent, sessionId);
-                    callbacks(messageContent, sessionId);
+                    insertNewMessageInDatabase(sender, messageParser);
+                    notifyUser(sender, messageParser);
+                    callbacks(sender, messageParser);
                 }
             }
         }, 0, 1000);

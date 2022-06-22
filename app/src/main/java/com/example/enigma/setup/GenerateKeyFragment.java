@@ -16,6 +16,8 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.navigation.fragment.NavHostFragment;
 
+import com.example.enigma.FileUtils;
+import com.example.enigma.LocalAppStorage;
 import com.example.enigma.OnionServices;
 import com.example.enigma.R;
 import com.example.enigma.databinding.FragmentGenerateKeyBinding;
@@ -59,20 +61,22 @@ public class GenerateKeyFragment extends Fragment {
     {
         this.closeKeyboardOnGenerateKeys();
 
-        final String filesDirectory = activity.getFilesDir().toString();
-
-        final String publicKeyPath = filesDirectory + "/public.pem";
-        final String privateKeyPath = filesDirectory + "/private.pem";
         final String passphrase = binding.passwordEditText.getText().toString();
 
         this.disableInputsOnGenerateKeys();
 
-        ExecutorService executor = Executors.newSingleThreadExecutor();
         Handler handler = new Handler(Looper.getMainLooper());
-
-        executor.execute(() -> {
+        Executors.newSingleThreadExecutor().execute(() -> {
             // Todo: apply encryption over private key;
+
+            Context context = requireActivity();
+
             OnionServices onionServices = OnionServices.getInstance();
+            LocalAppStorage localAppStorage = new LocalAppStorage(context);
+
+            String publicKeyPath = LocalAppStorage.getDefaultPublicKeyFile(context);
+            String privateKeyPath = LocalAppStorage.getDefaultPrivateKeyFile(context);
+
             final int status = onionServices.generatePrivateKey(publicKeyPath, privateKeyPath, keySize,
                     false, passphrase);
 
@@ -81,13 +85,15 @@ public class GenerateKeyFragment extends Fragment {
 
                 if(status == 0)
                 {
-                    SharedPreferences.Editor editor = activity.getSharedPreferences(
-                            getString(R.string.shared_preferences), Context.MODE_PRIVATE).edit();
+                    String publicKeyPEM = FileUtils.getInstance(
+                            requireActivity()).readFile(
+                                    LocalAppStorage.getDefaultPublicKeyFileName());
+                    String localAddress = OnionServices.getInstance().
+                            getAddressFromPublicKey(publicKeyPEM);
 
-                    editor.putString("publicKey", publicKeyPath);
-                    editor.putString("privateKey", privateKeyPath);
-
-                    editor.apply();
+                    localAppStorage.setPublicKeyPath(publicKeyPath);
+                    localAppStorage.setPrivateKeyPath(privateKeyPath);
+                    localAppStorage.setLocalAddress(localAddress);
 
                     NavHostFragment.findNavController(GenerateKeyFragment.this)
                             .navigate(R.id.action_FirstFragment_to_SecondFragment);

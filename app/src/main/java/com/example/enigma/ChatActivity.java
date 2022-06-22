@@ -25,6 +25,8 @@ import com.example.enigma.database.Message;
 import com.example.enigma.database.MessageDao;
 import com.example.enigma.database.NodeDao;
 
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -201,12 +203,46 @@ public class ChatActivity extends AppCompatActivity {
         });
     }
 
+    private static class MessageBuilder
+    {
+        JSONObject messageContent;
+
+        public MessageBuilder(LocalAppStorage localAppStorage, String content)
+        {
+            messageContent = new JSONObject();
+            try {
+                messageContent.put("address", localAppStorage.getLocalAddress());
+                messageContent.put("guardAddress", localAppStorage.getGuardAddress());
+                messageContent.put("message", content);
+            } catch (Exception e)
+            {
+                messageContent = null;
+            }
+        }
+
+        @NonNull
+        @Override
+        public String toString()
+        {
+            return messageContent.toString();
+        }
+    }
+
+    @NonNull
+    private String buildJsonMessage(String messageContent)
+    {
+        MessageBuilder messageBuilder = new MessageBuilder(
+                new LocalAppStorage(this), messageContent);
+
+        return messageBuilder.toString();
+    }
+
     public void onSendButtonClicked(View view)
     {
         String text = messageInputEditText.getText().toString().trim();
         if(text.length() != 0)
         {
-            if(OnionServices.getInstance().sendMessage(text, foreignAddress) < 0)
+            if(OnionServices.getInstance().sendMessage(buildJsonMessage(text), foreignAddress) < 0)
             {
                 Toast.makeText(this, "Message could not be delivered", Toast.LENGTH_SHORT).show();
                 return;

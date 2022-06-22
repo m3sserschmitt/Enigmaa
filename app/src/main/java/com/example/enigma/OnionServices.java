@@ -6,6 +6,9 @@ public class OnionServices {
         System.loadLibrary("enigma");
     }
 
+    private static final String defaultAddress =
+            "0000000000000000000000000000000000000000000000000000000000000000";
+
     private static OnionServices instance;
 
     public static OnionServices getInstance() {
@@ -19,6 +22,8 @@ public class OnionServices {
     }
 
     private OnionServices() {}
+
+    public static String getDefaultAddress() { return defaultAddress; }
 
     public native int generatePrivateKey(String publicKeyFile, String privateKeyFile, int bits,
                                          boolean encrypt, String passphrase);
