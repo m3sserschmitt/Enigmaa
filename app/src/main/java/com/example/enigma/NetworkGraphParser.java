@@ -51,17 +51,15 @@ public class NetworkGraphParser {
 
                 int numberOfNeighbors = adjacencyList.length();
 
-                Node node = new Node();
-                node.setAddress(address);
-                node.setPublicKey(publicKey);
+                Node node = new Node(address, null, publicKey);
 
                 nodeDao.insertAll(node);
 
                 for(int i = 0; i < numberOfNeighbors; i ++)
                 {
-                    Edge edge = new Edge();
-                    edge.setSource(address);
-                    edge.setTarget(adjacencyList.get(i).toString());
+                    Edge edge = new Edge(address, adjacencyList.get(i).toString());
+                    //edge.setSource(address);
+                    //edge.setTarget(adjacencyList.get(i).toString());
 
                     edgeDao.insertAll(edge);
                 }

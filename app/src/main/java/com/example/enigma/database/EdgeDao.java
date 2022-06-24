@@ -21,4 +21,7 @@ public interface EdgeDao {
 
     @Query("DELETE FROM edges")
     void clear();
+
+    @Query("DELETE FROM edges WHERE source=:address OR target=:address")
+    void deleteEdges(String address);
 }

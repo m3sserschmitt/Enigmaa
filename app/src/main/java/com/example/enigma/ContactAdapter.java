@@ -45,8 +45,8 @@ public class ContactAdapter
             itemView.setOnClickListener(v -> {
                 Intent chatActivityIntent = new Intent(context, ChatActivity.class);
 
-                chatActivityIntent.putExtra("address", address);
-                chatActivityIntent.putExtra("name", name);
+//                chatActivityIntent.putExtra("address", address);
+//                chatActivityIntent.putExtra("name", name);
                 chatActivityIntent.putExtra("sessionId", sessionId);
 
                 context.startActivity(chatActivityIntent);
@@ -105,14 +105,29 @@ public class ContactAdapter
     public void updateItemAdditionalInfo(String content, @NonNull Contact contact)
     {
         String sessionId = contact.getSessionId();
+        boolean updated = false;
+
         for(int i = 0; i < contactsList.size(); i++)
         {
             if(contactsList.get(i).getSessionId().equals(sessionId))
             {
-                contactsList.get(i).setAdditionalInfo(content);
-                notifyItemChanged(i);
+                ContactItem item = contactsList.get(i);
+                contactsList.remove(i);
+                notifyItemRemoved(i);
+
+                item.setAdditionalInfo(content);
+                contactsList.add(0, item);
+                notifyItemInserted(0);
+                updated = true;
                 break;
             }
+        }
+
+        if(!updated)
+        {
+            contactsList.add(0, new ContactItem(contact.getNickName(), contact.getAddress(), content,
+                    contact.getSessionId()));
+            notifyItemInserted(0);
         }
     }
 

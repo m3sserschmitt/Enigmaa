@@ -23,8 +23,12 @@ import com.example.enigma.R;
 import com.example.enigma.database.AppDatabase;
 import com.example.enigma.database.Contact;
 import com.example.enigma.database.ContactDao;
+import com.example.enigma.database.Edge;
+import com.example.enigma.database.EdgeDao;
 import com.example.enigma.database.Message;
 import com.example.enigma.database.MessageDao;
+import com.example.enigma.database.Node;
+import com.example.enigma.database.NodeDao;
 
 import android.util.Base64;
 import android.widget.Toast;
@@ -76,7 +80,7 @@ public class MessagingService extends Service {
         return isServiceRunning;
     }
 
-    public static void setOnNewMessageListener(onMessageReceivedListener listener, Class<?> cls)
+    public static void setOnNewMessageListener(onMessageReceivedListener listener, @NonNull Class<?> cls)
     {
         listeners.put(cls.getName(), listener);
     }
@@ -203,17 +207,17 @@ public class MessagingService extends Service {
     {
         LocalAppStorage localAppStorage = new LocalAppStorage(this);
 
-        String guardHostname = localAppStorage.getGuardHostname();
-        String guardPublicKeyPEM = localAppStorage.getGuardPublicKeyPEM();
-        String onionPortNumber = localAppStorage.getOnionServicePortNumber();
+        try {
+            String guardHostname = Objects.requireNonNull(localAppStorage.getGuardHostname()).trim();
+            String guardPublicKeyPEM = Objects.requireNonNull(localAppStorage.getGuardPublicKeyPEM()).trim();
+            String onionPortNumber = Objects.requireNonNull(localAppStorage.getOnionServicePortNumber()).trim();
 
-        if(guardHostname == null || guardPublicKeyPEM == null || onionPortNumber == null)
+            return OnionServices.getInstance().
+                    openConnection(guardHostname, onionPortNumber, guardPublicKeyPEM) != null;
+        } catch (Exception e)
         {
             return false;
         }
-
-        return OnionServices.getInstance().
-                openConnection(guardHostname, onionPortNumber, guardPublicKeyPEM) != null;
     }
 
     public void connectClientAsync()
@@ -335,6 +339,8 @@ public class MessagingService extends Service {
         String messageOrigin = messageParser.getMessageOrigin();
         boolean updated = false;
 
+        String previousAddress = contact.getAddress();
+
         if(contact.getAddress().equals(OnionServices.getDefaultAddress()))
         {
             if(messageOrigin == null)
@@ -360,9 +366,20 @@ public class MessagingService extends Service {
         if(updated)
         {
             AppDatabase databaseInstance = AppDatabase.getInstance(this);
+
             ContactDao contactDao = databaseInstance.contactDao();
+            NodeDao nodeDao = databaseInstance.nodeDao();
+            EdgeDao edgeDao = databaseInstance.edgeDao();
+
+            Node node = new Node(contact.getAddress(), null, null);
+            Edge edge1 = new Edge(contact.getAddress(), contact.getGuardAddress());
+            Edge edge2 = new Edge(contact.getGuardAddress(), contact.getAddress());
 
             contactDao.update(contact);
+            nodeDao.delete(node);
+            edgeDao.deleteEdges(previousAddress);
+            nodeDao.insertAll(node);
+            edgeDao.insertAll(edge1, edge2);
         }
 
         return contact;

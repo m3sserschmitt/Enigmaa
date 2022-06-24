@@ -34,6 +34,6 @@ public interface NodeDao {
     @Query("DELETE FROM nodes")
     void clear();
 
-    @Query("SELECT publicKey FROM nodes WHERE address=:address")
-    String getPublicKey(String address);
+    @Query("SELECT publicKeyPEM FROM nodes WHERE address=:address")
+    String getPublicKeyPEM(String address);
 }

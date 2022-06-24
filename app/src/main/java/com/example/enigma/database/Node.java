@@ -1,9 +1,12 @@
 package com.example.enigma.database;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
+
+import com.example.enigma.OnionServices;
 
 import java.util.List;
 
@@ -12,14 +15,13 @@ public class Node implements Comparable <Node> {
 
     @PrimaryKey
     @NonNull
-    private String address = "";
+    private String address;
 
+    @Nullable
     private String ip;
 
-    private String publicKey;
-
-    @Ignore
-    private boolean visited = false;
+    @Nullable
+    private String publicKeyPEM;
 
     @Ignore
     private double distance = Double.MAX_VALUE;
@@ -30,15 +32,24 @@ public class Node implements Comparable <Node> {
     @Ignore
     private List<Edge> adjacencyList;
 
+    public Node(@NonNull String address, @Nullable String ip, @Nullable String publicKeyPEM)
+    {
+        this.address = address;
+        this.ip = ip;
+        this.publicKeyPEM = publicKeyPEM;
+    }
+
     @NonNull
     public String getAddress() {
         return address;
     }
 
-    public String getPublicKey() {
-        return publicKey;
+    @Nullable
+    public String getPublicKeyPEM() {
+        return publicKeyPEM;
     }
 
+    @Nullable
     public String getIp()
     {
         return ip;
@@ -48,22 +59,12 @@ public class Node implements Comparable <Node> {
         this.address = address;
     }
 
-    public void setIp(String ip) {
+    public void setIp(@Nullable String ip) {
         this.ip = ip;
     }
 
-    public void setPublicKey(String publicKey) {
-        this.publicKey = publicKey;
-    }
-
-    public boolean isVisited()
-    {
-        return visited;
-    }
-
-    public void setVisited(boolean visited)
-    {
-        this.visited = visited;
+    public void setPublicKeyPEM(@Nullable String publicKey) {
+        this.publicKeyPEM = publicKey;
     }
 
     public void setDistance(double distance)

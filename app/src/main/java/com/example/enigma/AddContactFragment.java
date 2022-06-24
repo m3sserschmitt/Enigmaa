@@ -28,12 +28,12 @@ import com.example.enigma.communications.MessagingService;
 import com.example.enigma.database.AppDatabase;
 import com.example.enigma.database.Contact;
 import com.example.enigma.database.ContactDao;
+import com.example.enigma.database.Node;
 import com.example.enigma.databinding.FragmentAddContactBinding;
 import com.example.enigma.qr.QrCodeHelper;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Random;
 import java.util.concurrent.Executors;
 
 public class AddContactFragment extends Fragment {
@@ -159,9 +159,12 @@ public class AddContactFragment extends Fragment {
             Contact contact = new Contact(OnionServices.getDefaultAddress(),
                     exportedContactData.getSessionId(),
                     exportedContactData.getSessionKey(),
-                    OnionServices.getDefaultAddress(), contactName);
+                    OnionServices.getDefaultAddress(),
+                    contactName);
 
             contactDao.insertAll(contact);
+
+            OnionServices.getInstance().loadContact(contact.getAddress(), contact.getDecodedSessionId(), contact.getDecodedSessionKey());
         });
     }
 

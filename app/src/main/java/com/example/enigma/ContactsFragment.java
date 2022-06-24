@@ -23,7 +23,11 @@ import java.util.concurrent.Executors;
 
 public class ContactsFragment extends Fragment {
 
+    private ContactAdapter contactAdapter;
+
     private FragmentContactsBinding binding;
+
+    private MessagingService.onMessageReceivedListener onMessageReceivedListener;
 
     public ContactsFragment() {
     }
@@ -37,6 +41,8 @@ public class ContactsFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         binding = FragmentContactsBinding.inflate(inflater, container, false);
+        onMessageReceivedListener = (content, contact) ->
+                contactAdapter.updateItemAdditionalInfo(contact.getAddress(), contact);
 
         return binding.getRoot();
     }
@@ -45,12 +51,13 @@ public class ContactsFragment extends Fragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState)
     {
         getContactsFromDatabase();
+        MessagingService.setOnNewMessageListener(onMessageReceivedListener, this.getClass());
         MessagingService.setNoSessionOnFocus();
     }
 
     private void populateRecyclerView(List<ContactItem> items)
     {
-        ContactAdapter contactAdapter = new ContactAdapter(requireContext(), items);
+        contactAdapter = new ContactAdapter(requireContext(), items);
         binding.contactsRecyclerView.setHasFixedSize(true);
         binding.contactsRecyclerView.setAdapter(contactAdapter);
     }
@@ -67,11 +74,6 @@ public class ContactsFragment extends Fragment {
 
             for(Contact contact : contacts)
             {
-                if(contact.getAddress() == null)
-                {
-                    continue;
-                }
-
                 String contactAddress = contact.getAddress();
                 String additionalInfo = contactAddress;
 

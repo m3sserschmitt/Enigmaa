@@ -60,7 +60,7 @@ public class CircuitBuilder {
         }
     }
 
-    public void buildShortestCircuit(Node startNode)
+    public void buildShortestCircuit(@NonNull Node startNode)
     {
         startNode.setDistance(0);
 
@@ -99,7 +99,7 @@ public class CircuitBuilder {
         buildShortestCircuit(startNode);
     }
 
-    public List<Circuit> getShortestPath(String destinationAddress, AppDatabase databaseInstance)
+    public List<Circuit> getShortestPath(String destinationAddress, @NonNull AppDatabase databaseInstance)
     {
         Node currentNode = graph.get(destinationAddress);
 
@@ -118,7 +118,7 @@ public class CircuitBuilder {
 
             path.add(circuit);
             currentNode = currentNode.getPredecessor();
-            i--;
+            i++;
         }
 
         Collections.reverse(path);

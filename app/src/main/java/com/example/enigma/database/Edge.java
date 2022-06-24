@@ -19,6 +19,12 @@ public class Edge {
     @Ignore
     private int weight = 1;
 
+    public Edge(String target, String source)
+    {
+        this.target = target;
+        this.source = source;
+    }
+
     @NonNull
     public String getSource() {
         return source;

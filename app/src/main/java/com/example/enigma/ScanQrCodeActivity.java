@@ -22,6 +22,8 @@ import com.example.enigma.communications.MessagingService;
 import com.example.enigma.database.AppDatabase;
 import com.example.enigma.database.Contact;
 import com.example.enigma.database.ContactDao;
+import com.example.enigma.database.Edge;
+import com.example.enigma.database.EdgeDao;
 import com.example.enigma.database.Node;
 import com.example.enigma.database.NodeDao;
 import com.google.zxing.BarcodeFormat;
@@ -123,32 +125,44 @@ public class ScanQrCodeActivity extends AppCompatActivity implements
 
                 NodeDao nodeDao = appDatabaseInstance.nodeDao();
                 ContactDao contactDao = appDatabaseInstance.contactDao();
+                EdgeDao edgeDao = appDatabaseInstance.edgeDao();
 
                 Contact contact = new Contact(address, sessionId, sessionKey, guardAddress, name);
-                Node node = new Node();
+                Node node = new Node(address, null, null);
+                Edge edge1 = new Edge(guardAddress, address);
+                Edge edge2 = new Edge(address, guardAddress);
 
-                node.setAddress(address);
+                contactDao.delete(contact);
+                nodeDao.delete(node);
+                edgeDao.deleteEdges(address);
 
-                final Contact contactControl = contactDao.findByAddress(address);
+                contactDao.insertAll(contact);
+                nodeDao.insertAll(node);
+                edgeDao.insertAll(edge1, edge2);
 
-                if(contactControl == null)
-                {
-                    nodeDao.insertAll(node);
-                    contactDao.insertAll(contact);
-                } else {
-                    contact.setId(contactControl.getId());
-                    contactDao.update(contact);
-                }
+//                final Contact contactControl = contactDao.findByAddress(address);
+
+//                if(contactControl == null)
+//                {
+//                    nodeDao.insertAll(node);
+//                    contactDao.insertAll(contact);
+//                } else {
+//                    contact.setId(contactControl.getId());
+//                    contactDao.update(contact);
+//                }
+
+                OnionServices.getInstance().loadContact(contact.getAddress(),
+                        contact.getDecodedSessionId(), contact.getDecodedSessionKey());
 
                 handler.post(() -> {
-                    if(contactControl == null)
-                    {
-                        Toast.makeText(this, "New contact added: " + address,
-                                Toast.LENGTH_LONG).show();
-                    } else {
+//                    if(contactControl == null)
+//                    {
+//                        Toast.makeText(this, "New contact added: " + address,
+//                                Toast.LENGTH_LONG).show();
+//                    } else {
                         Toast.makeText(this, "Existing contact updated",
                                 Toast.LENGTH_LONG).show();
-                    }
+//                    }
                 });
             });
         } catch (Exception e) {

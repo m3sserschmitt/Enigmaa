@@ -1,9 +1,13 @@
 package com.example.enigma.database;
 
+import android.util.Base64;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
+
+import com.example.enigma.OnionServices;
 
 @Entity(tableName = "contacts")
 public class Contact {
@@ -11,22 +15,26 @@ public class Contact {
     @PrimaryKey(autoGenerate = true)
     private long id;
 
-    @NonNull private String sessionId;
+    @NonNull
+    private String sessionId;
 
-    @Nullable
+    @NonNull
     private String address;
 
-    @NonNull private String sessionKey;
+    @NonNull
+    private String sessionKey;
 
-    @Nullable String guardAddress;
+    @NonNull
+    String guardAddress;
 
-    @NonNull String nickName;
+    @NonNull
+    String nickName;
 
-    public Contact(@Nullable String address,
+    public Contact(@NonNull String address,
                    @NonNull String sessionId,
                    @NonNull String sessionKey,
-                   @Nullable String guardAddress,
-                    @NonNull String nickName)
+                   @NonNull String guardAddress,
+                   @NonNull String nickName)
     {
         this.address = address;
         this.sessionId = sessionId;
@@ -43,17 +51,19 @@ public class Contact {
         this.id = id;
     }
 
-    @Nullable
+    @NonNull
     public String getAddress()
     {
         return address;
     }
 
-    @NonNull public String getSessionId() {
+    @NonNull
+    public String getSessionId() {
         return sessionId;
     }
 
-    @NonNull public String getSessionKey() {
+    @NonNull
+    public String getSessionKey() {
         return sessionKey;
     }
 
@@ -61,12 +71,12 @@ public class Contact {
         this.guardAddress = guardAddress;
     }
 
-    @Nullable
+    @NonNull
     public String getGuardAddress() {
         return guardAddress;
     }
 
-    public void setAddress(@Nullable String address) {
+    public void setAddress(@NonNull String address) {
         this.address = address;
     }
 
@@ -85,5 +95,17 @@ public class Contact {
 
     public void setNickName(@NonNull String nickName) {
         this.nickName = nickName;
+    }
+
+    @NonNull
+    public byte[] getDecodedSessionId()
+    {
+        return Base64.decode(sessionId, Base64.DEFAULT);
+    }
+
+    @NonNull
+    public byte[] getDecodedSessionKey()
+    {
+        return Base64.decode(sessionKey, Base64.DEFAULT);
     }
 }

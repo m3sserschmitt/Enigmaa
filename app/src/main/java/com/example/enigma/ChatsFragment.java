@@ -82,15 +82,7 @@ public class ChatsFragment extends Fragment {
             for(Contact contact : contacts)
             {
                 Message lastMessage = messageDao.getLastMessage(contact.getSessionId());
-//                String timeStamp = new SimpleDateFormat("yyyy/MM/dd HH:mm",
-//                        Locale.ENGLISH).format(new Date(lastMessage.getTimestamp()));
-
                 String address = contact.getAddress();
-
-                if(address == null)
-                {
-                    continue;
-                }
 
                 String content = lastMessage.getContent();
                 if(!lastMessage.getSender().equals(address))
