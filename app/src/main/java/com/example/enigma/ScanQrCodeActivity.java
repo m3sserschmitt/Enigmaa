@@ -140,29 +140,11 @@ public class ScanQrCodeActivity extends AppCompatActivity implements
                 nodeDao.insertAll(node);
                 edgeDao.insertAll(edge1, edge2);
 
-//                final Contact contactControl = contactDao.findByAddress(address);
-
-//                if(contactControl == null)
-//                {
-//                    nodeDao.insertAll(node);
-//                    contactDao.insertAll(contact);
-//                } else {
-//                    contact.setId(contactControl.getId());
-//                    contactDao.update(contact);
-//                }
-
                 OnionServices.getInstance().loadContact(contact.getAddress(),
                         contact.getDecodedSessionId(), contact.getDecodedSessionKey());
 
                 handler.post(() -> {
-//                    if(contactControl == null)
-//                    {
-//                        Toast.makeText(this, "New contact added: " + address,
-//                                Toast.LENGTH_LONG).show();
-//                    } else {
-                        Toast.makeText(this, "Existing contact updated",
-                                Toast.LENGTH_LONG).show();
-//                    }
+                    Toast.makeText(this, "New contact added", Toast.LENGTH_SHORT).show();
                 });
             });
         } catch (Exception e) {

@@ -152,6 +152,7 @@ public class AddContactFragment extends Fragment {
 
     private void saveExported(String contactName)
     {
+        Handler handler = new Handler(Looper.getMainLooper());
         Executors.newSingleThreadExecutor().execute(() -> {
             AppDatabase databaseInstance = AppDatabase.getInstance(requireActivity());
             ContactDao contactDao = databaseInstance.contactDao();
@@ -165,6 +166,10 @@ public class AddContactFragment extends Fragment {
             contactDao.insertAll(contact);
 
             OnionServices.getInstance().loadContact(contact.getAddress(), contact.getDecodedSessionId(), contact.getDecodedSessionKey());
+
+            handler.post(() -> {
+               Toast.makeText(requireActivity(), "Session saved", Toast.LENGTH_SHORT).show();
+            });
         });
     }
 

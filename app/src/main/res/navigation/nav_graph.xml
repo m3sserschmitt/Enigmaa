@@ -3,26 +3,26 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/FirstFragment">
+    app:startDestination="@id/GenerateKeyFragment">
 
     <fragment
-        android:id="@+id/FirstFragment"
+        android:id="@+id/GenerateKeyFragment"
         android:name="com.example.enigma.setup.GenerateKeyFragment"
-        android:label="@string/first_fragment_label"
+        android:label="@string/generate_key_fragment"
         tools:layout="@layout/fragment_generate_key">
 
         <action
             android:id="@+id/action_FirstFragment_to_SecondFragment"
-            app:destination="@id/SecondFragment" />
+            app:destination="@id/SetupGuardFragment" />
     </fragment>
     <fragment
-        android:id="@+id/SecondFragment"
+        android:id="@+id/SetupGuardFragment"
         android:name="com.example.enigma.setup.GuardSetupFragment"
-        android:label="@string/second_fragment_label"
+        android:label="@string/setup_guard_node_fragment"
         tools:layout="@layout/fragment_guard_setup">
 
         <action
             android:id="@+id/action_SecondFragment_to_FirstFragment"
-            app:destination="@id/FirstFragment" />
+            app:destination="@id/GenerateKeyFragment" />
     </fragment>
 </navigation>
