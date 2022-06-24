@@ -1,0 +1,3 @@
+[submodule "app/src/main/cpp/enigma4"]
+	path = app/src/main/cpp/enigma4
+	url = https://github.com/m3sserschmitt/enigma4.git
