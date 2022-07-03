@@ -1,24 +1,25 @@
 # For more information about using CMake with Android Studio, read the
 # documentation: https://d.android.com/studio/projects/add-native-code.html
 
-add_library(crypto STATIC IMPORTED)
-set_target_properties(crypto PROPERTIES
-        IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/openssl-1.1.1n-bin/${ANDROID_ABI}/libcrypto.a")
-
-add_library(ssl STATIC IMPORTED)
-set_target_properties(ssl PROPERTIES
-        IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/openssl-1.1.1n-bin/${ANDROID_ABI}/libssl.a")
-
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/openssl-1.1.1n/include)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/enigma4/libcryptography/include)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/enigma4/libnet/include)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/enigma4/libutil/include)
 
 # Sets the minimum version of CMake required to build the native library.
 cmake_minimum_required(VERSION 3.10.2)
 
 # Declares and names the project.
 project("enigma" VERSION 1.0.0)
+
+add_library(crypto STATIC IMPORTED)
+set_target_properties(crypto PROPERTIES
+        IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/openssl-bin/${ANDROID_ABI}/libcrypto.a")
+
+add_library(ssl STATIC IMPORTED)
+set_target_properties(ssl PROPERTIES
+        IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/openssl-bin/${ANDROID_ABI}/libssl.a")
+
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/openssl/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/enigma4/libcryptography/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/enigma4/libnet/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/enigma4/libutil/include)
 
 
 # Creates and names a library, sets it as either STATIC

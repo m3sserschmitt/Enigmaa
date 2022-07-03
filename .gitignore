@@ -13,5 +13,7 @@
 .externalNativeBuild
 .cxx
 local.properties
-app/src/main/cpp/openssl-1.1.1n
-
+.vscode
+app/src/main/cpp/openssl
+app/src/main/cpp/openssl-bin
+app/src/main/cpp/openssl-*.tar.gz
